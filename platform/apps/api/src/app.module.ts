@@ -5,6 +5,8 @@ import { TenantMiddleware } from "./common/tenant/tenant.middleware";
 import { AuthModule } from "./modules/auth/auth.module";
 import { TenantsModule } from "./modules/tenants/tenants.module";
 import { VehiclesModule } from "./modules/vehicles/vehicles.module";
+import { CrmModule } from "./modules/crm/crm.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
 @Module({
@@ -14,6 +16,8 @@ import { HealthModule } from "./modules/health/health.module";
     AuthModule,
     TenantsModule,
     VehiclesModule,
+    CrmModule,
+    DashboardModule,
     HealthModule,
   ],
 })
