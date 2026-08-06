@@ -1,4 +1,4 @@
-import type { SearchResult, VehicleListItem } from "./types";
+import type { SearchResult, VehicleDetail, VehicleListItem } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -25,5 +25,17 @@ export async function searchVehicles(params: Record<string, string> = {}): Promi
   } catch {
     // Fallback offline — permite desenvolver o front sem a API rodando.
     return { items: SAMPLE, total: SAMPLE.length, page: 1, pageSize: 24 };
+  }
+}
+
+export async function getVehicle(id: string): Promise<VehicleDetail | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/vehicles/${id}`, { next: { revalidate: 30 } });
+    if (!res.ok) return null;
+    return (await res.json()) as VehicleDetail;
+  } catch {
+    const sample = SAMPLE.find((v) => v.id === id);
+    if (!sample) return null;
+    return { ...sample, status: "ACTIVE", media: [], options: [] };
   }
 }
