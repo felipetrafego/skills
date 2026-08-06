@@ -86,7 +86,24 @@ pnpm dev
 | `POST` | `/api/postsale/vehicles/:id/sold` | Marca vendido e abre a jornada — dono |
 | `POST` | `/api/postsale/offers` | Contrata serviço (calcula comissão) — dono |
 | `GET` | `/api/postsale/offers?vehicleId=` | Ofertas contratadas do veículo — dono |
+| `GET` | `/api/vehicles/:id/media` · `POST` | Listar / anexar mídia do anúncio |
+| `POST` | `/api/vehicles/:id/media/presign` | Gera URL de upload (dono) |
+| `DELETE` | `/api/vehicles/:id/media/:mediaId` | Remove mídia (dono) |
+| `PUT`/`GET` | `/api/storage/:key` | Upload/serve de objetos (provider local de dev) |
 | `GET` | `/api/health` | Healthcheck (inclui status do banco) |
+
+### Upload de mídia (fotos/vídeos)
+
+Fluxo em 3 passos (mesmo contrato de um bucket S3 com URL pré-assinada):
+
+1. `POST /vehicles/:id/media/presign` → `{ uploadUrl, publicUrl }`
+2. `PUT {uploadUrl}` com os bytes do arquivo (o cliente sobe direto ao storage)
+3. `POST /vehicles/:id/media` com `{ url: publicUrl, type }` → cria o `VehicleMedia`
+
+Em dev, um **provider local** (`StorageService`) grava em `STORAGE_DIR` e serve por
+`/api/storage/:key`. Em produção, troca-se por um bucket S3-compatível — o restante do
+fluxo permanece idêntico. É por aqui que fotos licenciadas ou do lojista entram (inclusive
+para os modelos do catálogo).
 
 ### Catálogo de modelos
 
