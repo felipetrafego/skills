@@ -78,6 +78,14 @@ pnpm dev
 | `GET` | `/api/crm/pipeline` | Board do funil por estágio (tenant) |
 | `POST` | `/api/crm/deals` · `PATCH /:id/move` | Criar / mover negociação (tenant) |
 | `GET` | `/api/dashboard/summary` | KPIs, origem dos leads e funil (tenant) |
+| `POST` | `/api/vehicles/:id/events` | Registra evento do anúncio (view/click/contact/share) — público |
+| `POST` | `/api/vehicles/:id/favorite` | Favoritar/desfavoritar (toggle) — auth |
+| `GET` | `/api/vehicles/:id/stats` | Analytics do anúncio p/ o dono (dashboard grátis) |
+| `GET` | `/api/me/favorites` | Meus favoritos — auth |
+| `GET` | `/api/postsale/partners` | Parceiros da jornada de pós-venda |
+| `POST` | `/api/postsale/vehicles/:id/sold` | Marca vendido e abre a jornada — dono |
+| `POST` | `/api/postsale/offers` | Contrata serviço (calcula comissão) — dono |
+| `GET` | `/api/postsale/offers?vehicleId=` | Ofertas contratadas do veículo — dono |
 | `GET` | `/api/health` | Healthcheck (inclui status do banco) |
 
 ### Catálogo de modelos

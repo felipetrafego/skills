@@ -7,6 +7,8 @@ import { TenantsModule } from "./modules/tenants/tenants.module";
 import { VehiclesModule } from "./modules/vehicles/vehicles.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { CrmModule } from "./modules/crm/crm.module";
+import { EngagementModule } from "./modules/engagement/engagement.module";
+import { PostsaleModule } from "./modules/postsale/postsale.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -19,6 +21,8 @@ import { HealthModule } from "./modules/health/health.module";
     VehiclesModule,
     CatalogModule,
     CrmModule,
+    EngagementModule,
+    PostsaleModule,
     DashboardModule,
     HealthModule,
   ],
