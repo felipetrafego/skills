@@ -1,4 +1,4 @@
-import { PrismaClient, Fuel, Transmission } from "@prisma/client";
+import { PrismaClient, Fuel, Transmission, PartnerCategory } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -94,7 +94,26 @@ async function main() {
     });
   }
 
-  console.log("Seed concluído: plano, tenant, usuários e estoque de demonstração.");
+  // Parceiros da jornada de pós-venda
+  const partners: { name: string; category: PartnerCategory; rate: string }[] = [
+    { name: "Despachante Já", category: "TRANSFER", rate: "0.1500" },
+    { name: "Porto Seguro Auto", category: "INSURANCE", rate: "0.1000" },
+    { name: "Banco Motora Financiamento", category: "FINANCING", rate: "0.0200" },
+    { name: "Garantia+", category: "WARRANTY", rate: "0.2000" },
+    { name: "Vistoria Certa", category: "INSPECTION", rate: "0.1200" },
+    { name: "Rastreia Brasil", category: "TRACKER", rate: "0.1800" },
+    { name: "Estética Automotiva Prime", category: "CLEANING", rate: "0.1500" },
+  ];
+  for (const p of partners) {
+    const exists = await prisma.partner.findFirst({ where: { name: p.name } });
+    if (!exists) {
+      await prisma.partner.create({
+        data: { name: p.name, category: p.category, commissionRate: p.rate },
+      });
+    }
+  }
+
+  console.log("Seed concluído: plano, tenant, usuários, estoque e parceiros de demonstração.");
 }
 
 main()

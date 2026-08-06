@@ -350,6 +350,29 @@ model VehicleOption {
   @@id([vehicleId, optionId])
 }
 
+/// Catálogo de modelos (base reutilizável para prefill ao criar anúncios).
+/// Não é um anúncio: não tem preço, vendedor nem quilometragem.
+model CatalogModel {
+  id           String        @id @default(uuid())
+  make         String
+  model        String
+  version      String?
+  segment      String? // "Hatch", "Sedã", "SUV", "Coupé", "Elétrico"...
+  bodyType     String?
+  yearFrom     Int
+  yearTo       Int?
+  fuel         Fuel          @default(GASOLINE)
+  transmission Transmission?
+  doors        Int?
+  imageUrl     String? // placeholder até imagem devidamente licenciada
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+
+  @@unique([make, model, version])
+  @@index([make, active])
+  @@index([segment])
+}
+
 model FipeReference {
   id             String   @id @default(uuid())
   make           String

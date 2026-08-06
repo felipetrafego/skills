@@ -55,6 +55,12 @@ ai_quality_score? · created_at`
 ### VehicleOption  *(opcionais)*
 `id · vehicle_id · option_id`  ·  **Option:** `id · name · category`
 
+### CatalogModel *(catálogo de modelos — base de prefill)*
+`id · make · model · version · segment · body_type · year_from · year_to? · fuel ·
+transmission? · doors? · image_url? · active`
+Base reutilizável da linha de cada marca (ex.: BMW). Não é um anúncio — sem preço/vendedor.
+`image_url` fica como placeholder (sem embutir fotos oficiais das montadoras).
+
 ### FipeReference *(cache de tabela FIPE)*
 `id · make · model · year · fuel · code · price · reference_month`
 

@@ -72,7 +72,26 @@ pnpm dev
 | `GET` | `/api/vehicles/:id` | Detalhe do veículo |
 | `POST` | `/api/vehicles` | Cria anúncio (guarded) |
 | `GET` | `/api/tenants/current` | Vitrine do tenant (por subdomínio/header) |
+| `GET` | `/api/catalog/makes` | Marcas do catálogo (com contagem) |
+| `GET` | `/api/catalog/models` | Modelos do catálogo (`make`, `segment`, `fuel`, `q`) — base de prefill |
+| `GET` | `/api/crm/leads` · `POST` | Listar / criar leads (tenant) |
+| `GET` | `/api/crm/pipeline` | Board do funil por estágio (tenant) |
+| `POST` | `/api/crm/deals` · `PATCH /:id/move` | Criar / mover negociação (tenant) |
+| `GET` | `/api/dashboard/summary` | KPIs, origem dos leads e funil (tenant) |
 | `GET` | `/api/health` | Healthcheck (inclui status do banco) |
+
+### Catálogo de modelos
+
+Base reutilizável (`CatalogModel`) para *prefill* ao criar anúncios — **não** são anúncios
+(sem preço/vendedor). A linha BMW já vem populada:
+
+```bash
+pnpm db:seed:catalog   # popula/atualiza a linha BMW (41 modelos)
+```
+
+> **Imagens:** o catálogo não embute fotos oficiais das montadoras (direitos autorais).
+> `imageUrl` fica como placeholder; fotos licenciadas ou do lojista entram depois via
+> upload de mídia.
 
 ### Multi-tenancy
 
