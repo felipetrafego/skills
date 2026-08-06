@@ -6,9 +6,10 @@ Entrega incremental. Cada fase é utilizável e adiciona valor. Prioriza o **loo
 ## Fase 0 — Fundação (atual)
 - [x] Documento mestre, arquitetura, modelo de dados, monetização, design system
 - [x] Protótipo visual navegável (marketplace + dashboards)
-- [ ] Scaffold do monorepo (web + api + packages) e `schema.prisma` inicial
-- [ ] Design system em código (tokens + componentes base)
-- [ ] CI/CD, ambientes, autenticação base (JWT + OAuth)
+- [x] Scaffold do monorepo (web + api + packages) e `schema.prisma` completo/validado
+- [x] Design system em código (tokens + componentes base)
+- [x] Autenticação base (JWT: register/login/me) + slice de veículos e vitrine de tenant
+- [ ] OAuth (Google/Apple/Microsoft), CI/CD e ambientes
 
 **Meta:** base técnica e visão validada.
 

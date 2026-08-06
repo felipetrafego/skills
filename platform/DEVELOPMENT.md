@@ -1,0 +1,91 @@
+# Guia de Desenvolvimento — Motora
+
+Monorepo com **pnpm workspaces + Turborepo**. Requer Node ≥ 20, pnpm ≥ 10 e Docker
+(para Postgres/Redis locais).
+
+## Estrutura
+
+```
+platform/
+  apps/
+    web/        Next.js 14 (App Router) — marketplace público + painéis
+    api/        NestJS 10 — API modular multi-tenant
+  packages/
+    ui/         Design system (React) + tokens.css
+    config/     Preset Tailwind com os tokens
+  prisma/       schema.prisma + seed
+  docker-compose.yml
+```
+
+## Primeiros passos
+
+```bash
+cd platform
+
+# 1. Variáveis de ambiente
+cp .env.example .env
+
+# 2. Subir Postgres + Redis
+docker compose up -d
+
+# 3. Instalar dependências (todo o workspace)
+pnpm install
+
+# 4. Banco: gerar client, aplicar schema e popular dados de demonstração
+pnpm db:generate
+pnpm db:push
+pnpm db:seed
+
+# 5. Rodar tudo (web em :3000, api em :3333)
+pnpm dev
+```
+
+> O front (`apps/web`) tem **fallback offline**: sem a API no ar, o marketplace
+> renderiza uma amostra de veículos, então dá para desenvolver a UI isoladamente.
+
+## Scripts (raiz)
+
+| Script | Ação |
+|---|---|
+| `pnpm dev` | Sobe web + api em watch (Turborepo) |
+| `pnpm build` | Build de todos os apps/packages |
+| `pnpm typecheck` | Checagem de tipos |
+| `pnpm lint` | Lint |
+| `pnpm db:migrate` | Cria/aplica migração de desenvolvimento |
+| `pnpm db:push` | Aplica o schema sem migração (protótipo) |
+| `pnpm db:seed` | Popula dados de demonstração |
+| `pnpm db:studio` | Abre o Prisma Studio |
+
+## Credenciais de seed
+
+- **Lojista:** `ricardo@autoprime.com.br` / `motora123`
+- **Pessoa física:** `comprador@exemplo.com` / `motora123`
+
+## API — endpoints já implementados (slice inicial)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/auth/register` | Cadastro de pessoa física |
+| `POST` | `/api/auth/login` | Login (retorna access + refresh token) |
+| `GET` | `/api/auth/me` | Usuário do token (guarded) |
+| `GET` | `/api/vehicles` | Busca do marketplace (filtros, paginação) |
+| `GET` | `/api/vehicles/:id` | Detalhe do veículo |
+| `POST` | `/api/vehicles` | Cria anúncio (guarded) |
+| `GET` | `/api/tenants/current` | Vitrine do tenant (por subdomínio/header) |
+| `GET` | `/api/health` | Healthcheck (inclui status do banco) |
+
+### Multi-tenancy
+
+O `TenantMiddleware` resolve o tenant por **header `x-tenant`** ou **subdomínio**
+(`loja.motora.com.br`) e o expõe via `AsyncLocalStorage` (`TenantContext`). Serviços
+scoped filtram por `tenantId`. Como defesa em profundidade, a camada de banco deve
+habilitar **RLS** no Postgres (migração de policies — próxima tarefa da Fase 2).
+
+## O que já existe × próximos passos
+
+**Pronto (Fase 0 → início da Fase 1):** monorepo, schema completo, design system em
+código, auth (register/login/JWT), busca de veículos, criação de anúncio, vitrine de
+tenant, seed e Docker.
+
+**Próximo:** RLS/policies, upload de mídia (URLs pré-assinadas), CRM (leads/deals),
+dashboards com dados reais, faturamento de assinatura. Ver [`docs/04-roadmap.md`](./docs/04-roadmap.md).

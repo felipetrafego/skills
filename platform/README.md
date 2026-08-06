@@ -5,8 +5,19 @@
 > particulares e compradores em um único ecossistema. Lojistas pagam assinatura; pessoas
 > físicas anunciam de graça.
 
-Este diretório contém a **fundação do projeto**: documentação mestre e um protótipo visual
-navegável. O código de aplicação (web/api) será scaffoldado nas próximas fases — ver roadmap.
+Este diretório contém a **fundação do projeto**: documentação mestre, um protótipo visual
+navegável e o **scaffold do monorepo** (web + api + design system + Prisma). Para rodar
+localmente, veja [`DEVELOPMENT.md`](./DEVELOPMENT.md).
+
+## Código (monorepo)
+
+```
+apps/web        Next.js 14 (App Router) — marketplace + painéis
+apps/api        NestJS 10 — API modular multi-tenant (auth, tenants, vehicles, health)
+packages/ui     Design system em React + tokens.css
+packages/config Preset Tailwind com os tokens
+prisma/         schema.prisma (multi-tenant) + seed
+```
 
 ## Documentação
 
@@ -48,5 +59,7 @@ Docker · Kubernetes · CDN. Auth JWT/OAuth/2FA. Ver arquitetura.
 
 ## Status
 
-**Fase 0 — Fundação.** Próximo passo sugerido: scaffold do monorepo (`apps/web`, `apps/api`,
-`packages/ui`) e `prisma/schema.prisma` inicial. Ver [roadmap](./docs/04-roadmap.md).
+**Fase 0 concluída · Fase 1 iniciada.** Monorepo scaffoldado, schema de dados completo e
+validado, design system em código, e uma fatia vertical da API no ar (auth + busca/criação
+de veículos + vitrine de tenant). Próximo: RLS/policies, upload de mídia, CRM e dashboards
+com dados reais. Ver [roadmap](./docs/04-roadmap.md) e [guia de dev](./DEVELOPMENT.md).
