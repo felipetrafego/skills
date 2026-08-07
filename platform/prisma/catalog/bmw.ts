@@ -1,20 +1,10 @@
-import { Fuel } from "@prisma/client";
-
-export interface CatalogEntry {
-  model: string;
-  version: string;
-  segment: string;
-  bodyType: string;
-  fuel: Fuel;
-  doors: number;
-  yearFrom: number;
-}
+import { Fuel, type CatalogEntry, type MakeCatalog } from "./types";
 
 /**
  * Linha BMW atual comercializada no Brasil (referência de catálogo).
  * Sem imagens embutidas — `imageUrl` fica como placeholder (fotos licenciadas depois).
  */
-export const BMW_LINEUP: CatalogEntry[] = [
+const BMW_LINEUP: CatalogEntry[] = [
   // Hatch
   { model: "Série 1", version: "118i M Sport", segment: "Hatch", bodyType: "Hatch", fuel: Fuel.GASOLINE, doors: 5, yearFrom: 2020 },
   { model: "Série 1", version: "M135i xDrive", segment: "Hatch Esportivo", bodyType: "Hatch", fuel: Fuel.GASOLINE, doors: 5, yearFrom: 2020 },
@@ -78,3 +68,5 @@ export const BMW_LINEUP: CatalogEntry[] = [
   { model: "i7", version: "xDrive60", segment: "Sedã de Luxo Elétrico", bodyType: "Sedã", fuel: Fuel.ELECTRIC, doors: 4, yearFrom: 2023 },
   { model: "iX", version: "xDrive50", segment: "SUV Elétrico", bodyType: "SUV", fuel: Fuel.ELECTRIC, doors: 5, yearFrom: 2022 },
 ];
+
+export const BMW: MakeCatalog = { make: "BMW", entries: BMW_LINEUP };

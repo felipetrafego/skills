@@ -111,8 +111,11 @@ Base reutilizável (`CatalogModel`) para *prefill* ao criar anúncios — **não
 (sem preço/vendedor). A linha BMW já vem populada:
 
 ```bash
-pnpm db:seed:catalog   # popula/atualiza a linha BMW (41 modelos)
+pnpm db:seed:catalog   # popula/atualiza 7 marcas (~120 modelos)
 ```
+
+Marcas cobertas: **BMW, Toyota, Volkswagen, Chevrolet, Fiat, Honda, Hyundai**. Cada marca é
+um arquivo em `prisma/catalog/` (fácil adicionar novas), agregadas em `prisma/catalog/index.ts`.
 
 > **Imagens:** o catálogo não embute fotos oficiais das montadoras (direitos autorais).
 > `imageUrl` fica como placeholder; fotos licenciadas ou do lojista entram depois via
