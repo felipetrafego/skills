@@ -201,6 +201,22 @@ export const createActivity = (b: { type: string; title: string; dueAt?: string 
   authPost<Activity>("/crm/activities", b);
 export const completeActivity = (id: string) => authPatch<Activity>(`/crm/activities/${id}/done`, {});
 
+// ---- Automações ----
+export interface Automation {
+  id: string;
+  name: string;
+  trigger: { type: string };
+  actions: { type: string; body?: string; activityType?: string; title?: string };
+  active: boolean;
+}
+
+export const fetchAutomations = () => authFetch<Automation[]>("/automations");
+export const createAutomation = (b: {
+  name: string; trigger: string; action: string; body?: string; activityType?: string; activityTitle?: string;
+}) => authPost<Automation>("/automations", b);
+export const toggleAutomation = (id: string) => authPatch<Automation>(`/automations/${id}/toggle`, {});
+export const deleteAutomation = (id: string) => authDelete(`/automations/${id}`);
+
 // ---- Relatórios ----
 export interface ReportSummary {
   kpis: { leads: number; sales: number; sold: number; revenue: number; conversion: number; activeVehicles: number; avgTicket: number };

@@ -17,6 +17,7 @@ import { AiModule } from "./modules/ai/ai.module";
 import { AdsModule } from "./modules/ads/ads.module";
 import { MarketingModule } from "./modules/marketing/marketing.module";
 import { ReportsModule } from "./modules/reports/reports.module";
+import { AutomationsModule } from "./modules/automations/automations.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -39,6 +40,7 @@ import { HealthModule } from "./modules/health/health.module";
     AdsModule,
     MarketingModule,
     ReportsModule,
+    AutomationsModule,
     DashboardModule,
     HealthModule,
   ],

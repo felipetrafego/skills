@@ -7,6 +7,7 @@ import { MoveDealDto } from "./dto/move-deal.dto";
 import { SendMessageDto } from "./dto/send-message.dto";
 import { CreateTemplateDto } from "./dto/create-template.dto";
 import { CreateActivityDto } from "./dto/create-activity.dto";
+import { AutomationEngine } from "../automations/automation-engine.service";
 
 const PIPELINE: DealStage[] = [
   DealStage.NEW,
@@ -19,7 +20,10 @@ const PIPELINE: DealStage[] = [
 
 @Injectable()
 export class CrmService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly automations: AutomationEngine,
+  ) {}
 
   // ---- Leads ----
   async createLead(tenantId: string, dto: CreateLeadDto) {
@@ -32,12 +36,18 @@ export class CrmService {
         vehicleId: dto.vehicleId,
         source: dto.source ?? "MARKETPLACE",
       },
+      include: { vehicle: { select: { title: true } } },
     });
     if (dto.vehicleId) {
       await this.prisma.vehicle
         .update({ where: { id: dto.vehicleId }, data: { leadsCount: { increment: 1 } } })
         .catch(() => undefined);
     }
+    await this.automations.run(tenantId, "LEAD_CREATED", {
+      leadId: lead.id,
+      leadName: lead.name,
+      vehicleTitle: lead.vehicle?.title,
+    });
     return lead;
   }
 
@@ -72,14 +82,23 @@ export class CrmService {
     if (!deal) throw new NotFoundException("Negociação não encontrada");
 
     const closing = dto.stage === DealStage.WON || dto.stage === DealStage.LOST;
-    return this.prisma.deal.update({
+    const updated = await this.prisma.deal.update({
       where: { id: dealId },
       data: {
         stage: dto.stage,
         lostReason: dto.stage === DealStage.LOST ? dto.lostReason : null,
         closedAt: closing ? new Date() : null,
       },
+      include: { lead: { select: { name: true } }, vehicle: { select: { title: true } } },
     });
+    if (dto.stage === DealStage.WON) {
+      await this.automations.run(tenantId, "DEAL_WON", {
+        leadId: updated.leadId,
+        leadName: updated.lead.name,
+        vehicleTitle: updated.vehicle?.title,
+      });
+    }
+    return updated;
   }
 
   /** Board do pipeline: estágios com suas negociações e totais. */
