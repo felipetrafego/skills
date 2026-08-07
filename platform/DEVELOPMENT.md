@@ -69,6 +69,9 @@ pnpm dev
 | `POST` | `/api/auth/register` | Cadastro de pessoa física |
 | `POST` | `/api/auth/login` | Login (retorna access + refresh token) |
 | `GET` | `/api/auth/me` | Usuário do token (guarded) |
+| `POST` | `/api/auth/2fa/setup` · `/enable` · `/disable` | Configura/ativa/desativa 2FA (TOTP) |
+| `GET` | `/api/auth/2fa/status` | Estado do 2FA do usuário |
+| `POST` | `/api/auth/2fa/login` | 2º passo do login quando o 2FA está ativo |
 | `GET` | `/api/vehicles` | Busca do marketplace (filtros, paginação) |
 | `GET` | `/api/vehicles/:id` | Detalhe do veículo |
 | `POST` | `/api/vehicles` | Cria anúncio (guarded) |

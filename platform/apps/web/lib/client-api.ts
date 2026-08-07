@@ -16,17 +16,39 @@ export function clearToken() {
   window.localStorage.removeItem(TOKEN_KEY);
 }
 
-export async function login(email: string, password: string) {
+export async function login(
+  email: string,
+  password: string,
+): Promise<{ require2fa?: boolean; challenge?: string }> {
   const res = await fetch(`${API}/api/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) throw new Error("E-mail ou senha inválidos");
+  const data = (await res.json()) as { accessToken?: string; require2fa?: boolean; challenge?: string };
+  if (data.accessToken) {
+    setToken(data.accessToken);
+    return {};
+  }
+  return { require2fa: true, challenge: data.challenge };
+}
+
+export async function twofaLogin(challenge: string, code: string) {
+  const res = await fetch(`${API}/api/auth/2fa/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ challenge, code }),
+  });
+  if (!res.ok) throw new Error("Código de verificação inválido");
   const data = (await res.json()) as { accessToken: string };
   setToken(data.accessToken);
-  return data;
 }
+
+export const twofaStatus = () => authFetch<{ enabled: boolean }>("/auth/2fa/status");
+export const twofaSetup = () => authPost<{ secret: string; otpauth: string }>("/auth/2fa/setup", {});
+export const twofaEnable = (code: string) => authPost<{ enabled: boolean }>("/auth/2fa/enable", { code });
+export const twofaDisable = (code: string) => authPost<{ enabled: boolean }>("/auth/2fa/disable", { code });
 
 export async function authFetch<T>(path: string): Promise<T> {
   const token = getToken();

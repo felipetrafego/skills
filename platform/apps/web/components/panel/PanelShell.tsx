@@ -14,6 +14,7 @@ const NAV: { href: string; label: string; icon: ReactNode; disabled?: boolean }[
   { href: "/painel/agenda", label: "Agenda", icon: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></> },
   { href: "/painel/marketing", label: "Marketing", icon: <path d="M3 11l18-8-8 18-2-8z" /> },
   { href: "/painel/financeiro", label: "Financeiro", icon: <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /> },
+  { href: "/painel/seguranca", label: "Segurança", icon: <><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /><path d="M9 12l2 2 4-4" /></> },
 ];
 
 export function PanelShell({ children }: { children: ReactNode }) {

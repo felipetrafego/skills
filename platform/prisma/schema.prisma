@@ -228,6 +228,7 @@ model User {
   avatarUrl        String?
   type             UserType  @default(INDIVIDUAL)
   twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
   emailVerifiedAt  DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
