@@ -125,8 +125,20 @@ um arquivo em `prisma/catalog/` (fácil adicionar novas), agregadas em `prisma/c
 
 O `TenantMiddleware` resolve o tenant por **header `x-tenant`** ou **subdomínio**
 (`loja.motora.com.br`) e o expõe via `AsyncLocalStorage` (`TenantContext`). Serviços
-scoped filtram por `tenantId`. Como defesa em profundidade, a camada de banco deve
-habilitar **RLS** no Postgres (migração de policies — próxima tarefa da Fase 2).
+scoped filtram por `tenantId` (enforcement primário hoje).
+
+**RLS (defesa em profundidade).** As policies em `prisma/policies/rls.sql` restringem, no
+banco, as tabelas do tenant a `app.tenant_id`. Aplicar com:
+
+```bash
+pnpm db:rls
+```
+
+O **dono** das tabelas ignora RLS (por isso o app atual, que conecta como dono, não muda).
+Para *enforcement* real em produção: conectar com um papel **não-dono** (ex.: `motora_app`,
+sem BYPASSRLS) e fixar o tenant por transação via `PrismaService.withTenant(tenantId, fn)`,
+que roda `set_config('app.tenant_id', …)` antes das queries. Verificado: com o papel
+não-dono, cada tenant só enxerga as próprias linhas; sem contexto, nenhuma.
 
 ## O que já existe × próximos passos
 
