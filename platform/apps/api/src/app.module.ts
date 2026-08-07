@@ -10,6 +10,7 @@ import { CrmModule } from "./modules/crm/crm.module";
 import { EngagementModule } from "./modules/engagement/engagement.module";
 import { MediaModule } from "./modules/media/media.module";
 import { PostsaleModule } from "./modules/postsale/postsale.module";
+import { BillingModule } from "./modules/billing/billing.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -25,6 +26,7 @@ import { HealthModule } from "./modules/health/health.module";
     EngagementModule,
     MediaModule,
     PostsaleModule,
+    BillingModule,
     DashboardModule,
     HealthModule,
   ],

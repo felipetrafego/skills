@@ -106,6 +106,23 @@ export interface CreatedVehicle {
   id: string;
 }
 
+// ---- Faturamento ----
+export interface SubscriptionInfo {
+  state: "NONE" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELED";
+  plan: { name: string; priceMonthly: number };
+  paymentMethod: string | null;
+  currentPeriodEnd: string | null;
+}
+export interface InvoiceItem {
+  id: string;
+  amount: number;
+  status: "OPEN" | "PAID" | "VOID" | "UNCOLLECTIBLE";
+  method: string | null;
+  dueAt: string;
+  paidAt: string | null;
+  nfUrl: string | null;
+}
+
 // ---- Tipos das respostas usadas no painel ----
 export interface DashboardSummary {
   period: string;
