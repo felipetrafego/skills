@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { VehicleCard } from "@/components/VehicleCard";
 import { HeroSearch } from "@/components/market/HeroSearch";
 import { Filters } from "@/components/market/Filters";
+import { CompareBar } from "@/components/market/CompareBar";
 import { searchVehicles } from "@/lib/api";
 import { normalizeSearchParams } from "@/lib/query";
 
@@ -34,6 +35,7 @@ export default async function MarketplacePage({
         </Link>
         <nav className="hidden md:flex gap-1 ml-2 text-[13.5px] text-muted">
           <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/">Comprar</Link>
+          <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/favoritos">Favoritos</Link>
           <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/entrar">Vender grátis</Link>
         </nav>
         <div className="ml-auto flex items-center gap-2.5">
@@ -85,6 +87,8 @@ export default async function MarketplacePage({
           )}
         </div>
       </section>
+
+      <CompareBar />
     </main>
   );
 }

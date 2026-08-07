@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, TierBadge } from "@motora/ui";
 import type { VehicleListItem } from "@/lib/types";
 import { brl, km, fuelLabel, transmissionLabel } from "@/lib/format";
+import { CardActions } from "@/components/market/CardActions";
 
 export function VehicleCard({ v }: { v: VehicleListItem }) {
   return (
@@ -19,6 +20,7 @@ export function VehicleCard({ v }: { v: VehicleListItem }) {
               <TierBadge tier={v.featuredTier} />
             </span>
           )}
+          <CardActions id={v.id} />
         </div>
         <div className="p-3.5">
           <h4 className="text-[14.5px] font-semibold">{v.title}</h4>
