@@ -29,6 +29,14 @@ export interface VehicleMedia {
   position: number;
 }
 
+export interface Store {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  activeVehicles: number;
+}
+
 export interface VehicleDetail extends VehicleListItem {
   description?: string | null;
   version?: string | null;

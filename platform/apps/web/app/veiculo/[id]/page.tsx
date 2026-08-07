@@ -124,7 +124,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
               <span className="w-9 h-9 rounded-full grid place-items-center text-white text-[13px] font-bold" style={{ background: "linear-gradient(135deg,#0d1017,#33405c)" }}>
                 {(v.tenant?.name ?? "PF").slice(0, 2).toUpperCase()}
               </span>
-              <div>
+              <div className="flex-1">
                 <b className="text-[14px]">{v.tenant?.name ?? "Vendedor particular"}</b>
                 <div className="text-muted text-[12px]">
                   {v.tenant ? "Loja verificada" : "Anúncio de pessoa física"}
@@ -132,6 +132,11 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
                 </div>
               </div>
             </div>
+            {v.tenant && (
+              <Link href={`/loja/${v.tenant.slug}`} className="mt-3 block text-center rounded-[10px] border border-border py-2 text-[13px] font-medium text-text hover:bg-surface-2 transition-colors">
+                Ver loja
+              </Link>
+            )}
           </Card>
 
           <Card className="p-[18px]" style={{ background: "var(--brand-tint)", borderColor: "transparent" }}>

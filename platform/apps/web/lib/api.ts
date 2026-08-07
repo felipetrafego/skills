@@ -1,4 +1,4 @@
-import type { SearchResult, VehicleDetail, VehicleListItem } from "./types";
+import type { SearchResult, Store, VehicleDetail, VehicleListItem } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -25,6 +25,38 @@ export async function searchVehicles(params: Record<string, string> = {}): Promi
   } catch {
     // Fallback offline — permite desenvolver o front sem a API rodando.
     return { items: SAMPLE, total: SAMPLE.length, page: 1, pageSize: 24 };
+  }
+}
+
+/** Vitrine do lojista: dados da loja resolvidos por `x-tenant` (multi-tenant). */
+export async function fetchStore(slug: string): Promise<Store | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/tenants/current`, {
+      headers: { "x-tenant": slug },
+      next: { revalidate: 30 },
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as Store;
+  } catch {
+    return null;
+  }
+}
+
+/** Estoque ativo de uma loja específica (filtro por tenant via header). */
+export async function searchStoreVehicles(
+  slug: string,
+  params: Record<string, string> = {},
+): Promise<SearchResult> {
+  try {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_URL}/api/vehicles${qs ? `?${qs}` : ""}`, {
+      headers: { "x-tenant": slug },
+      next: { revalidate: 30 },
+    });
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    return (await res.json()) as SearchResult;
+  } catch {
+    return { items: [], total: 0, page: 1, pageSize: 24 };
   }
 }
 
