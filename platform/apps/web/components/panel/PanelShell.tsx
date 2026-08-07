@@ -10,6 +10,8 @@ const NAV: { href: string; label: string; icon: ReactNode; disabled?: boolean }[
   { href: "/painel/estoque", label: "Estoque", icon: <><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13v4H5z" /><circle cx="7.5" cy="17" r="1" /><circle cx="16.5" cy="17" r="1" /></> },
   { href: "/painel/anunciar", label: "Novo anúncio", icon: <><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13v4H5z" /><path d="M12 8v4M10 10h4" /></> },
   { href: "/painel/crm", label: "CRM", icon: <><path d="M16 21v-2a4 4 0 0 0-8 0v2" /><circle cx="12" cy="7" r="4" /></> },
+  { href: "/painel/atendimento", label: "Atendimento", icon: <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-9A8.4 8.4 0 1 1 21 11.5z" /> },
+  { href: "/painel/agenda", label: "Agenda", icon: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></> },
   { href: "/painel/marketing", label: "Marketing", icon: <path d="M3 11l18-8-8 18-2-8z" />, disabled: true },
   { href: "/painel/financeiro", label: "Financeiro", icon: <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /> },
 ];

@@ -86,6 +86,10 @@ pnpm dev
 | `GET` | `/api/crm/leads` · `POST` | Listar / criar leads (tenant) |
 | `GET` | `/api/crm/pipeline` | Board do funil por estágio (tenant) |
 | `POST` | `/api/crm/deals` · `PATCH /:id/move` | Criar / mover negociação (tenant) |
+| `GET`/`POST` | `/api/crm/messages` | Histórico / envio de mensagens (atendimento) |
+| `GET`/`POST` | `/api/crm/templates` | Templates de mensagem (tenant) |
+| `GET`/`POST` | `/api/crm/agenda` · `/api/crm/activities` | Agenda: listar / criar atividade |
+| `PATCH` | `/api/crm/activities/:id/done` | Conclui/reabre atividade |
 | `GET` | `/api/dashboard/summary` | KPIs, origem dos leads e funil (tenant) |
 | `POST` | `/api/vehicles/:id/events` | Registra evento do anúncio (view/click/contact/share) — público |
 | `POST` | `/api/vehicles/:id/favorite` | Favoritar/desfavoritar (toggle) — auth |

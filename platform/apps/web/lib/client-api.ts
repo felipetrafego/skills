@@ -137,6 +137,48 @@ export interface Ad {
   ctaUrl: string;
 }
 
+// ---- CRM: leads, atendimento, agenda ----
+export interface Lead {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  source: string;
+  vehicle: { title: string } | null;
+}
+export interface Message {
+  id: string;
+  direction: "IN" | "OUT";
+  channel: string;
+  body: string;
+  status: string | null;
+  createdAt: string;
+}
+export interface Template {
+  id: string;
+  name: string;
+  channel: string;
+  body: string;
+}
+export interface Activity {
+  id: string;
+  type: string;
+  title: string;
+  dueAt: string | null;
+  done: boolean;
+  deal: { lead: { name: string } } | null;
+}
+
+export const fetchLeads = () => authFetch<Lead[]>("/crm/leads");
+export const fetchMessages = (leadId: string) => authFetch<Message[]>(`/crm/messages?leadId=${leadId}`);
+export const sendMessage = (b: { leadId: string; channel: string; body: string; templateId?: string }) =>
+  authPost<Message>("/crm/messages", b);
+export const fetchTemplates = () => authFetch<Template[]>("/crm/templates");
+export const fetchAgenda = () => authFetch<Activity[]>("/crm/agenda");
+export const createActivity = (b: { type: string; title: string; dueAt?: string }) =>
+  authPost<Activity>("/crm/activities", b);
+export const completeActivity = (id: string) => authPatch<Activity>(`/crm/activities/${id}/done`, {});
+
 export async function fetchAds(placement = "HOME"): Promise<Ad[]> {
   try {
     const res = await fetch(`${API}/api/ads?placement=${placement}`);
