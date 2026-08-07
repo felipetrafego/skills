@@ -141,6 +141,11 @@ O `TenantMiddleware` resolve o tenant por **header `x-tenant`** ou **subdomínio
 (`loja.motora.com.br`) e o expõe via `AsyncLocalStorage` (`TenantContext`). Serviços
 scoped filtram por `tenantId` (enforcement primário hoje).
 
+**Vitrine por subdomínio (web).** O `middleware.ts` do Next reescreve `sub.dominio` (ou
+`sub.localhost:3000` em dev) da home para `/loja/<sub>`. Teste local:
+`http://auto-prime.localhost:3000/` cai na vitrine da loja (o Chromium resolve `*.localhost`
+para 127.0.0.1). Subdomínios reservados (`www`, `app`, `api`, `admin`) passam direto.
+
 **RLS (defesa em profundidade).** As policies em `prisma/policies/rls.sql` restringem, no
 banco, as tabelas do tenant a `app.tenant_id`. Aplicar com:
 
