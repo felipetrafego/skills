@@ -41,6 +41,71 @@ export async function authFetch<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+export async function authPost<T>(path: string, body: unknown): Promise<T> {
+  const token = getToken();
+  if (!token) throw new AuthError("Sem sessão");
+  const res = await fetch(`${API}/api${path}`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401 || res.status === 403) throw new AuthError("Sessão expirada");
+  if (!res.ok) throw new Error(`Erro ${res.status}`);
+  return (await res.json()) as T;
+}
+
+// ---- Catálogo (público) ----
+export interface CatalogModelItem {
+  id: string;
+  make: string;
+  model: string;
+  version: string | null;
+  segment: string | null;
+  bodyType: string | null;
+  fuel: string;
+  transmission: string | null;
+  doors: number | null;
+  yearFrom: number;
+}
+
+export async function fetchMakes(): Promise<{ make: string; models: number }[]> {
+  const res = await fetch(`${API}/api/catalog/makes`);
+  if (!res.ok) return [];
+  return (await res.json()) as { make: string; models: number }[];
+}
+
+export async function fetchModels(make: string): Promise<CatalogModelItem[]> {
+  const res = await fetch(`${API}/api/catalog/models?make=${encodeURIComponent(make)}`);
+  if (!res.ok) return [];
+  return (await res.json()) as CatalogModelItem[];
+}
+
+// ---- Upload de foto (presign -> PUT -> confirm) ----
+interface Presigned {
+  uploadUrl: string;
+  publicUrl: string;
+  key: string;
+}
+
+export async function uploadVehiclePhoto(vehicleId: string, file: File): Promise<void> {
+  const pre = await authPost<Presigned>(`/vehicles/${vehicleId}/media/presign`, {
+    filename: file.name,
+    contentType: file.type || "image/jpeg",
+    type: "PHOTO",
+  });
+  const put = await fetch(pre.uploadUrl, {
+    method: "PUT",
+    headers: { "content-type": file.type || "image/jpeg" },
+    body: file,
+  });
+  if (!put.ok) throw new Error("Falha ao enviar a imagem");
+  await authPost(`/vehicles/${vehicleId}/media`, { url: pre.publicUrl, type: "PHOTO" });
+}
+
+export interface CreatedVehicle {
+  id: string;
+}
+
 // ---- Tipos das respostas usadas no painel ----
 export interface DashboardSummary {
   period: string;
