@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card } from "@motora/ui";
-import { login, twofaLogin } from "@/lib/client-api";
+import {
+  login, twofaLogin, oauthProviders, oauthStart, storeToken,
+  type OAuthProviderStatus,
+} from "@/lib/client-api";
+
+const PROVIDER_LABEL: Record<string, string> = { google: "Google", microsoft: "Microsoft", apple: "Apple" };
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +19,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState<string | null>(null);
   const [code, setCode] = useState("");
+  const [providers, setProviders] = useState<OAuthProviderStatus[]>([]);
+
+  useEffect(() => {
+    // Retorno do fluxo OAuth: ?token=... (sucesso) ou ?oauth_error=1
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      storeToken(token);
+      router.replace("/painel");
+      return;
+    }
+    if (params.get("oauth_error")) setError("Não foi possível entrar com o provedor. Tente novamente.");
+    oauthProviders().then(setProviders).catch(() => setProviders([]));
+  }, [router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +98,34 @@ export default function LoginPage() {
                 {error && <p className="text-danger text-[13px]">{error}</p>}
                 <Button type="submit" loading={loading} className="w-full mt-1">Entrar</Button>
               </form>
+
+              <div className="flex items-center gap-3 my-4">
+                <span className="h-px bg-border flex-1" />
+                <span className="text-[11.5px] text-faint uppercase tracking-wide">ou</span>
+                <span className="h-px bg-border flex-1" />
+              </div>
+              <div className="flex flex-col gap-2">
+                {["google", "microsoft", "apple"].map((p) => {
+                  const configured = providers.find((x) => x.provider === p)?.configured;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      disabled={!configured}
+                      onClick={() => oauthStart(p)}
+                      title={configured ? undefined : "Configure as credenciais OAuth deste provedor"}
+                      className="flex items-center justify-center gap-2 w-full border border-border rounded-[10px] py-2.5 text-[13.5px] font-medium bg-surface hover:bg-surface-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Continuar com {PROVIDER_LABEL[p]}
+                    </button>
+                  );
+                })}
+                {providers.every((x) => !x.configured) && (
+                  <p className="text-[11.5px] text-faint text-center mt-1">
+                    Login social pronto — ative configurando as credenciais OAuth (ex.: GOOGLE_CLIENT_ID).
+                  </p>
+                )}
+              </div>
             </>
           ) : (
             <>

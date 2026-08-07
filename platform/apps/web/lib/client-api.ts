@@ -34,6 +34,26 @@ export async function login(
   return { require2fa: true, challenge: data.challenge };
 }
 
+export interface OAuthProviderStatus {
+  provider: string;
+  configured: boolean;
+}
+export async function oauthProviders(): Promise<OAuthProviderStatus[]> {
+  try {
+    const res = await fetch(`${API}/api/auth/oauth/providers`);
+    if (!res.ok) return [];
+    return (await res.json()) as OAuthProviderStatus[];
+  } catch {
+    return [];
+  }
+}
+export function oauthStart(provider: string) {
+  window.location.href = `${API}/api/auth/oauth/${provider}`;
+}
+export function storeToken(token: string) {
+  setToken(token);
+}
+
 export async function twofaLogin(challenge: string, code: string) {
   const res = await fetch(`${API}/api/auth/2fa/login`, {
     method: "POST",

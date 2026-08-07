@@ -1,15 +1,22 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { randomBytes } from "node:crypto";
+import type { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { TwoFaCodeDto, TwoFaLoginDto } from "./dto/twofa.dto";
+import { OAuthDevDto } from "./dto/oauth-dev.dto";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import type { JwtPayload } from "../../common/auth/jwt-payload";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post("register")
   register(@Body() dto: RegisterDto) {
@@ -56,5 +63,50 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   disable2fa(@CurrentUser() user: JwtPayload, @Body() dto: TwoFaCodeDto) {
     return this.auth.disable2fa(user.sub, dto.code);
+  }
+
+  // ---- Login social (OAuth) ----
+  @Get("oauth/providers")
+  oauthProviders() {
+    return this.auth.providersStatus();
+  }
+
+  private redirectUri(req: Request, provider: string): string {
+    const base = this.config.get<string>("API_PUBLIC_URL") ?? `${req.protocol}://${req.get("host")}`;
+    return `${base}/api/auth/oauth/${provider}/callback`;
+  }
+
+  @Get("oauth/:provider")
+  oauthStart(@Param("provider") provider: string, @Req() req: Request, @Res() res: Response) {
+    const state = randomBytes(12).toString("hex");
+    const url = this.auth.authorizeUrl(provider, this.redirectUri(req, provider), state);
+    res.redirect(url);
+  }
+
+  @Get("oauth/:provider/callback")
+  async oauthCallback(
+    @Param("provider") provider: string,
+    @Query("code") code: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const web = this.config.get<string>("CORS_ORIGIN", "http://localhost:3000");
+    try {
+      const { accessToken } = await this.auth.handleCallback(provider, code, this.redirectUri(req, provider));
+      res.redirect(`${web}/entrar?token=${encodeURIComponent(accessToken)}`);
+    } catch {
+      res.redirect(`${web}/entrar?oauth_error=1`);
+    }
+  }
+
+  /** Seam de teste (OAUTH_DEV_LOGIN=true): valida a lógica de conta sem provedor real. */
+  @Post("oauth/dev")
+  @HttpCode(200)
+  oauthDev(@Body() dto: OAuthDevDto) {
+    return this.auth.devOauthLogin(dto.provider, {
+      providerAccountId: dto.providerAccountId,
+      email: dto.email,
+      name: dto.name,
+    });
   }
 }
