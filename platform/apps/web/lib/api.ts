@@ -60,6 +60,27 @@ export async function searchStoreVehicles(
   }
 }
 
+export interface PublicLanding {
+  store: string;
+  slug: string;
+  title: string;
+  content: { headline: string; subheadline?: string; ctaText?: string; ctaUrl?: string };
+}
+
+/** Landing page publicada de um lojista (resolvida por x-tenant). */
+export async function fetchLandingPage(tenant: string, slug: string): Promise<PublicLanding | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/marketing/l/${slug}`, {
+      headers: { "x-tenant": tenant },
+      next: { revalidate: 30 },
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PublicLanding;
+  } catch {
+    return null;
+  }
+}
+
 export async function getVehicle(id: string): Promise<VehicleDetail | null> {
   try {
     const res = await fetch(`${API_URL}/api/vehicles/${id}`, { next: { revalidate: 30 } });

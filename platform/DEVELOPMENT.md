@@ -90,6 +90,9 @@ pnpm dev
 | `GET`/`POST` | `/api/crm/templates` | Templates de mensagem (tenant) |
 | `GET`/`POST` | `/api/crm/agenda` · `/api/crm/activities` | Agenda: listar / criar atividade |
 | `PATCH` | `/api/crm/activities/:id/done` | Conclui/reabre atividade |
+| `GET`/`POST` | `/api/marketing/campaigns` | Campanhas (Meta/Google/…) com UTM automático |
+| `GET`/`POST` | `/api/marketing/landing` · `PATCH /:id` | Landing pages: listar / criar / publicar |
+| `GET` | `/api/marketing/l/:slug` | Landing page publicada (por `x-tenant`) — público |
 | `GET` | `/api/dashboard/summary` | KPIs, origem dos leads e funil (tenant) |
 | `POST` | `/api/vehicles/:id/events` | Registra evento do anúncio (view/click/contact/share) — público |
 | `POST` | `/api/vehicles/:id/favorite` | Favoritar/desfavoritar (toggle) — auth |

@@ -179,6 +179,38 @@ export const createActivity = (b: { type: string; title: string; dueAt?: string 
   authPost<Activity>("/crm/activities", b);
 export const completeActivity = (id: string) => authPatch<Activity>(`/crm/activities/${id}/done`, {});
 
+// ---- Marketing ----
+export interface Campaign {
+  id: string;
+  name: string;
+  channel: string;
+  budget: string | number | null;
+  status: string;
+  utm: { source?: string; medium?: string; campaign?: string };
+}
+export interface LandingContent {
+  headline: string;
+  subheadline?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+}
+export interface Landing {
+  id: string;
+  slug: string;
+  title: string;
+  published: boolean;
+  content: LandingContent;
+}
+
+export const fetchCampaigns = () => authFetch<Campaign[]>("/marketing/campaigns");
+export const createCampaign = (b: { name: string; channel: string; budget?: number; utmCampaign?: string }) =>
+  authPost<Campaign>("/marketing/campaigns", b);
+export const fetchLanding = () => authFetch<Landing[]>("/marketing/landing");
+export const createLanding = (b: { slug: string; title: string; headline: string; subheadline?: string; ctaText?: string }) =>
+  authPost<Landing>("/marketing/landing", b);
+export const updateLanding = (id: string, b: { published?: boolean }) =>
+  authPatch<Landing>(`/marketing/landing/${id}`, b);
+
 export async function fetchAds(placement = "HOME"): Promise<Ad[]> {
   try {
     const res = await fetch(`${API}/api/ads?placement=${placement}`);

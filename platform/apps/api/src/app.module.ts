@@ -15,6 +15,7 @@ import { AdminModule } from "./modules/admin/admin.module";
 import { FeaturedModule } from "./modules/featured/featured.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { AdsModule } from "./modules/ads/ads.module";
+import { MarketingModule } from "./modules/marketing/marketing.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -35,6 +36,7 @@ import { HealthModule } from "./modules/health/health.module";
     FeaturedModule,
     AiModule,
     AdsModule,
+    MarketingModule,
     DashboardModule,
     HealthModule,
   ],
