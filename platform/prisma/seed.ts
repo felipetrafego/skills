@@ -51,6 +51,18 @@ async function main() {
     create: { userId: shopUser.id, tenantId: tenant.id, role: "ADMIN", joinedAt: new Date() },
   });
 
+  // Super-admin da plataforma
+  await prisma.user.upsert({
+    where: { email: "admin@motora.com.br" },
+    update: {},
+    create: {
+      name: "Admin Motora",
+      email: "admin@motora.com.br",
+      passwordHash: await bcrypt.hash("motora123", 10),
+      type: "PLATFORM_ADMIN",
+    },
+  });
+
   // Pessoa física
   await prisma.user.upsert({
     where: { email: "comprador@exemplo.com" },

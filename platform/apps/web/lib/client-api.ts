@@ -86,6 +86,29 @@ export function fetchMyVehicles(): Promise<MyVehicle[]> {
   return authFetch<MyVehicle[]>("/vehicles/mine");
 }
 
+// ---- Admin da plataforma ----
+export interface AdminOverview {
+  mrr: number;
+  arr: number;
+  activeTenants: number;
+  totalTenants: number;
+  totalUsers: number;
+  churnRate: number;
+  ltv: number;
+  avgTicket: number;
+  revenue: { subscriptions: number; commissions: number; featured: number; total: number };
+  catalog: { vehicles: number; soldVehicles: number; leads: number };
+}
+export interface AdminTenant {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  subscriptionStatus: string;
+  vehicles: number;
+  createdAt: string;
+}
+
 // ---- Catálogo (público) ----
 export interface CatalogModelItem {
   id: string;

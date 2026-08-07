@@ -60,6 +60,7 @@ pnpm dev
 
 - **Lojista:** `ricardo@autoprime.com.br` / `motora123`
 - **Pessoa física:** `comprador@exemplo.com` / `motora123`
+- **Admin da plataforma:** `admin@motora.com.br` / `motora123`
 
 ## API — endpoints já implementados (slice inicial)
 
@@ -93,6 +94,8 @@ pnpm dev
 | `POST` | `/api/vehicles/:id/media/presign` | Gera URL de upload (dono) |
 | `DELETE` | `/api/vehicles/:id/media/:mediaId` | Remove mídia (dono) |
 | `PUT`/`GET` | `/api/storage/:key` | Upload/serve de objetos (provider local de dev) |
+| `GET` | `/api/admin/overview` | Métricas consolidadas (MRR/ARR/churn/receita) — só PLATFORM_ADMIN |
+| `GET` | `/api/admin/tenants` | Lista de lojistas — só PLATFORM_ADMIN |
 | `GET` | `/api/health` | Healthcheck (inclui status do banco) |
 
 ### Upload de mídia (fotos/vídeos)
