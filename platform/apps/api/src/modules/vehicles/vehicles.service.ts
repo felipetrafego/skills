@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { TenantContext } from "../../common/tenant/tenant-context";
 import type { JwtPayload } from "../../common/auth/jwt-payload";
 import { QueryVehiclesDto } from "./dto/query-vehicles.dto";
 import { CreateVehicleDto } from "./dto/create-vehicle.dto";
+import { UpdateVehicleDto } from "./dto/update-vehicle.dto";
 
 @Injectable()
 export class VehiclesService {
@@ -85,6 +86,48 @@ export class VehiclesService {
         publishedAt: new Date(),
       },
     });
+  }
+
+  /** Estoque do usuário autenticado (lojista: por tenant; pessoa física: por dono). */
+  listMine(user: JwtPayload) {
+    const where: Prisma.VehicleWhereInput = user.tenantId
+      ? { tenantId: user.tenantId }
+      : { ownerUserId: user.sub };
+    return this.prisma.vehicle.findMany({
+      where: { ...where, status: { not: "REMOVED" } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        media: { orderBy: { position: "asc" }, take: 1 },
+        _count: { select: { media: true, leads: true } },
+      },
+    });
+  }
+
+  async update(user: JwtPayload, id: string, dto: UpdateVehicleDto) {
+    await this.assertOwnership(user, id);
+    const data: Prisma.VehicleUpdateInput = { ...dto };
+    if (dto.price != null) data.price = new Prisma.Decimal(dto.price);
+    if (dto.status === "SOLD") data.soldAt = new Date();
+    return this.prisma.vehicle.update({ where: { id }, data });
+  }
+
+  async remove(user: JwtPayload, id: string) {
+    await this.assertOwnership(user, id);
+    await this.prisma.vehicle.delete({ where: { id } });
+    return { ok: true };
+  }
+
+  private async assertOwnership(user: JwtPayload, id: string) {
+    const vehicle = await this.prisma.vehicle.findUnique({
+      where: { id },
+      select: { id: true, ownerUserId: true, tenantId: true },
+    });
+    if (!vehicle) throw new NotFoundException("Veículo não encontrado");
+    const owns =
+      (vehicle.ownerUserId && vehicle.ownerUserId === user.sub) ||
+      (vehicle.tenantId && vehicle.tenantId === user.tenantId);
+    if (!owns) throw new ForbiddenException("Este veículo não pertence a você");
+    return vehicle;
   }
 
   private orderBy(sort?: string): Prisma.VehicleOrderByWithRelationInput[] {

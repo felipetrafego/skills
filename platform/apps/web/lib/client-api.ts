@@ -42,16 +42,48 @@ export async function authFetch<T>(path: string): Promise<T> {
 }
 
 export async function authPost<T>(path: string, body: unknown): Promise<T> {
+  return authSend<T>("POST", path, body);
+}
+export async function authPatch<T>(path: string, body: unknown): Promise<T> {
+  return authSend<T>("PATCH", path, body);
+}
+export async function authDelete(path: string): Promise<void> {
+  await authSend<unknown>("DELETE", path);
+}
+
+async function authSend<T>(method: string, path: string, body?: unknown): Promise<T> {
   const token = getToken();
   if (!token) throw new AuthError("Sem sessão");
   const res = await fetch(`${API}/api${path}`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify(body),
+    method,
+    headers: {
+      authorization: `Bearer ${token}`,
+      ...(body !== undefined ? { "content-type": "application/json" } : {}),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401 || res.status === 403) throw new AuthError("Sessão expirada");
   if (!res.ok) throw new Error(`Erro ${res.status}`);
-  return (await res.json()) as T;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
+// ---- Estoque do lojista ----
+export interface MyVehicle {
+  id: string;
+  title: string;
+  price: string | number;
+  status: string;
+  mileageKm: number;
+  yearModel: number;
+  yearFab: number;
+  views: number;
+  media: { url: string }[];
+  _count: { media: number; leads: number };
+}
+
+export function fetchMyVehicles(): Promise<MyVehicle[]> {
+  return authFetch<MyVehicle[]>("/vehicles/mine");
 }
 
 // ---- Catálogo (público) ----

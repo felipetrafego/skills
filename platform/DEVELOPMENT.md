@@ -71,6 +71,9 @@ pnpm dev
 | `GET` | `/api/vehicles` | Busca do marketplace (filtros, paginação) |
 | `GET` | `/api/vehicles/:id` | Detalhe do veículo |
 | `POST` | `/api/vehicles` | Cria anúncio (guarded) |
+| `GET` | `/api/vehicles/mine` | Estoque do próprio usuário (guarded) |
+| `PATCH` | `/api/vehicles/:id` | Edita anúncio / muda status (dono) |
+| `DELETE` | `/api/vehicles/:id` | Remove anúncio (dono) |
 | `GET` | `/api/tenants/current` | Vitrine do tenant (por subdomínio/header) |
 | `GET` | `/api/catalog/makes` | Marcas do catálogo (com contagem) |
 | `GET` | `/api/catalog/models` | Modelos do catálogo (`make`, `segment`, `fuel`, `q`) — base de prefill |
