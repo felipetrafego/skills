@@ -99,6 +99,9 @@ pnpm dev
 | `POST` | `/api/vehicles/:id/media/presign` | Gera URL de upload (dono) |
 | `DELETE` | `/api/vehicles/:id/media/:mediaId` | Remove mídia (dono) |
 | `PUT`/`GET` | `/api/storage/:key` | Upload/serve de objetos (provider local de dev) |
+| `GET` | `/api/ads?placement=` | Anúncios patrocinados ativos (conta impressão) — público |
+| `POST` | `/api/ads/:id/click` | Registra clique no patrocinado — público |
+| `GET` | `/api/admin/ads` | Campanhas com métricas — só PLATFORM_ADMIN |
 | `GET` | `/api/admin/overview` | Métricas consolidadas (MRR/ARR/churn/receita) — só PLATFORM_ADMIN |
 | `GET` | `/api/admin/tenants` | Lista de lojistas — só PLATFORM_ADMIN |
 | `GET` | `/api/health` | Healthcheck (inclui status do banco) |

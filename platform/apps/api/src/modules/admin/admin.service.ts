@@ -31,6 +31,11 @@ export class AdminService {
       this.prisma.lead.count(),
     ]);
 
+    const advertising = await this.prisma.sponsorship.aggregate({
+      where: { active: true },
+      _sum: { amount: true },
+    });
+
     const mrr = activeSubs.reduce((s, x) => s + Number(x.plan.priceMonthly), 0);
     const arr = mrr * 12;
     const activeTenants = activeSubs.length;
@@ -45,6 +50,7 @@ export class AdminService {
     const subsRevenue = Number(paidInvoices._sum.amount ?? 0);
     const commissionRevenue = Number(commissions._sum.commissionAmount ?? 0);
     const featuredRevenue = Number(featured._sum.amount ?? 0);
+    const advertisingRevenue = Number(advertising._sum.amount ?? 0);
 
     return {
       mrr,
@@ -59,7 +65,8 @@ export class AdminService {
         subscriptions: subsRevenue,
         commissions: commissionRevenue,
         featured: featuredRevenue,
-        total: subsRevenue + commissionRevenue + featuredRevenue,
+        advertising: advertisingRevenue,
+        total: subsRevenue + commissionRevenue + featuredRevenue + advertisingRevenue,
       },
       catalog: { vehicles, soldVehicles, leads },
     };

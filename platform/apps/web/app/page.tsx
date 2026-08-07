@@ -5,6 +5,7 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { HeroSearch } from "@/components/market/HeroSearch";
 import { Filters } from "@/components/market/Filters";
 import { CompareBar } from "@/components/market/CompareBar";
+import { SponsoredBanner } from "@/components/market/SponsoredBanner";
 import { searchVehicles } from "@/lib/api";
 import { normalizeSearchParams } from "@/lib/query";
 
@@ -57,6 +58,10 @@ export default async function MarketplacePage({
           inteligente, comparador e recomendações por IA.
         </p>
         <HeroSearch sp={sp} />
+      </section>
+
+      <section className="max-w-[1240px] mx-auto px-6 pb-4">
+        <SponsoredBanner placement="HOME" />
       </section>
 
       <section className="max-w-[1240px] mx-auto px-6 pb-16 grid md:grid-cols-[236px_1fr] gap-7">

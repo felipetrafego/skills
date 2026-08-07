@@ -125,7 +125,34 @@ async function main() {
     }
   }
 
-  console.log("Seed concluído: plano, tenant, usuários, estoque e parceiros de demonstração.");
+  // Publicidade — espaços patrocinados (demonstração)
+  const in90 = new Date();
+  in90.setDate(in90.getDate() + 90);
+  const ads: { advertiser: string; category: string; title: string; description: string; ctaText: string; amount: string }[] = [
+    { advertiser: "Banco Motora", category: "Banco", title: "Financiamento com taxa a partir de 1,29% a.m.", description: "Simule em 1 minuto e aprove o financiamento do seu próximo carro.", ctaText: "Simular agora", amount: "8000" },
+    { advertiser: "Porto Seguro Auto", category: "Seguradora", title: "Seguro auto com até 40% de desconto", description: "Cotação rápida e proteção completa para o seu veículo.", ctaText: "Fazer cotação", amount: "6500" },
+  ];
+  for (const a of ads) {
+    const exists = await prisma.sponsorship.findFirst({ where: { advertiser: a.advertiser, title: a.title } });
+    if (!exists) {
+      await prisma.sponsorship.create({
+        data: {
+          advertiser: a.advertiser,
+          category: a.category,
+          title: a.title,
+          description: a.description,
+          ctaText: a.ctaText,
+          ctaUrl: "#",
+          placement: "HOME",
+          pricing: "PERIOD",
+          amount: a.amount,
+          endAt: in90,
+        },
+      });
+    }
+  }
+
+  console.log("Seed concluído: plano, tenant, usuários, estoque, parceiros e anúncios patrocinados.");
 }
 
 main()

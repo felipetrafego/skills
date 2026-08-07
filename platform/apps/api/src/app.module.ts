@@ -14,6 +14,7 @@ import { BillingModule } from "./modules/billing/billing.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { FeaturedModule } from "./modules/featured/featured.module";
 import { AiModule } from "./modules/ai/ai.module";
+import { AdsModule } from "./modules/ads/ads.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -33,6 +34,7 @@ import { HealthModule } from "./modules/health/health.module";
     AdminModule,
     FeaturedModule,
     AiModule,
+    AdsModule,
     DashboardModule,
     HealthModule,
   ],

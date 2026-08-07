@@ -15,11 +15,13 @@ const REVENUE_COLORS: Record<string, string> = {
   subscriptions: "var(--brand)",
   commissions: "var(--accent)",
   featured: "var(--success)",
+  advertising: "var(--platinum)",
 };
 const REVENUE_LABEL: Record<string, string> = {
   subscriptions: "Assinaturas",
   commissions: "Comissões",
   featured: "Destaques",
+  advertising: "Publicidade",
 };
 const SUB_TONE: Record<string, "green" | "amber" | "red" | "muted"> = {
   ACTIVE: "green",
@@ -55,7 +57,7 @@ export default function AdminPage() {
 
   const rev = ov.revenue;
   const revMax = Math.max(1, rev.total);
-  const revParts = (["subscriptions", "commissions", "featured"] as const).map((k) => ({
+  const revParts = (["subscriptions", "commissions", "featured", "advertising"] as const).map((k) => ({
     key: k,
     value: rev[k],
     pct: (rev[k] / revMax) * 100,

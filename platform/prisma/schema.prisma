@@ -174,6 +174,18 @@ enum ListingEventType {
   FAVORITE
 }
 
+enum AdPlacement {
+  HOME
+  SEARCH
+  DETAIL
+}
+
+enum AdPricing {
+  CPM
+  CPC
+  PERIOD
+}
+
 // ============================================================
 // Núcleo multi-tenant & identidade
 // ============================================================
@@ -663,6 +675,28 @@ model ServiceOffer {
   partner Partner @relation(fields: [partnerId], references: [id])
 
   @@index([status])
+}
+
+// Publicidade — espaços patrocinados no marketplace
+model Sponsorship {
+  id          String      @id @default(uuid())
+  advertiser  String
+  category    String // "Banco", "Seguradora", "Oficina", "Autopeças"...
+  title       String
+  description String?
+  ctaText     String      @default("Saiba mais")
+  ctaUrl      String      @default("#")
+  placement   AdPlacement @default(HOME)
+  pricing     AdPricing   @default(PERIOD)
+  amount      Decimal     @db.Decimal(12, 2)
+  startAt     DateTime    @default(now())
+  endAt       DateTime
+  active      Boolean     @default(true)
+  impressions Int         @default(0)
+  clicks      Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  @@index([placement, active, endAt])
 }
 
 // ============================================================

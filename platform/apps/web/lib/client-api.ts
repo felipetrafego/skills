@@ -126,6 +126,32 @@ export const aiScore = (id: string) => authFetch<AiScore>(`/vehicles/${id}/ai/sc
 export const aiPrice = (id: string) => authFetch<AiPrice>(`/vehicles/${id}/ai/price`);
 export const aiDescription = (id: string) => authPost<AiDescription>(`/vehicles/${id}/ai/description`, {});
 
+// ---- Publicidade (patrocinados) ----
+export interface Ad {
+  id: string;
+  advertiser: string;
+  category: string;
+  title: string;
+  description: string | null;
+  ctaText: string;
+  ctaUrl: string;
+}
+
+export async function fetchAds(placement = "HOME"): Promise<Ad[]> {
+  try {
+    const res = await fetch(`${API}/api/ads?placement=${placement}`);
+    if (!res.ok) return [];
+    return (await res.json()) as Ad[];
+  } catch {
+    return [];
+  }
+}
+
+export function adClick(id: string): void {
+  // fire-and-forget (não bloqueia a navegação para o anunciante)
+  void fetch(`${API}/api/ads/${id}/click`, { method: "POST", keepalive: true }).catch(() => undefined);
+}
+
 // ---- Admin da plataforma ----
 export interface AdminOverview {
   mrr: number;
@@ -136,7 +162,7 @@ export interface AdminOverview {
   churnRate: number;
   ltv: number;
   avgTicket: number;
-  revenue: { subscriptions: number; commissions: number; featured: number; total: number };
+  revenue: { subscriptions: number; commissions: number; featured: number; advertising: number; total: number };
   catalog: { vehicles: number; soldVehicles: number; leads: number };
 }
 export interface AdminTenant {
