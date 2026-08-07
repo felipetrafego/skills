@@ -201,6 +201,35 @@ export const createActivity = (b: { type: string; title: string; dueAt?: string 
   authPost<Activity>("/crm/activities", b);
 export const completeActivity = (id: string) => authPatch<Activity>(`/crm/activities/${id}/done`, {});
 
+// ---- Relatórios ----
+export interface ReportSummary {
+  kpis: { leads: number; sales: number; sold: number; revenue: number; conversion: number; activeVehicles: number; avgTicket: number };
+  leadsBySource: { source: string; count: number }[];
+  dealsByStage: { stage: string; count: number }[];
+  topVehicles: { title: string; views: number; leadsCount: number; status: string }[];
+}
+
+export const fetchReport = () => authFetch<ReportSummary>("/reports/summary");
+
+export async function downloadCsv(type: "leads" | "deals", filename: string) {
+  const token = getToken();
+  if (!token) throw new AuthError("Sem sessão");
+  const res = await fetch(`${API}/api/reports/export/${type}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401 || res.status === 403) throw new AuthError("Sessão expirada");
+  if (!res.ok) throw new Error("Falha ao exportar");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // ---- Marketing ----
 export interface Campaign {
   id: string;

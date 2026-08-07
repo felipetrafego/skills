@@ -96,6 +96,8 @@ pnpm dev
 | `GET`/`POST` | `/api/marketing/campaigns` | Campanhas (Meta/Google/…) com UTM automático |
 | `GET`/`POST` | `/api/marketing/landing` · `PATCH /:id` | Landing pages: listar / criar / publicar |
 | `GET` | `/api/marketing/l/:slug` | Landing page publicada (por `x-tenant`) — público |
+| `GET` | `/api/reports/summary` | Relatório: leads, conversão, vendas, top veículos |
+| `GET` | `/api/reports/export/:type` | Exporta CSV (Excel) — `leads` ou `deals` |
 | `GET` | `/api/dashboard/summary` | KPIs, origem dos leads e funil (tenant) |
 | `POST` | `/api/vehicles/:id/events` | Registra evento do anúncio (view/click/contact/share) — público |
 | `POST` | `/api/vehicles/:id/favorite` | Favoritar/desfavoritar (toggle) — auth |

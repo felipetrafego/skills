@@ -33,3 +33,18 @@
     animation: none !important;
   }
 }
+
+/* Impressão / exportar PDF: mostra só o conteúdo do relatório */
+@media print {
+  aside,
+  .no-print,
+  header {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding: 0 !important;
+  }
+}
