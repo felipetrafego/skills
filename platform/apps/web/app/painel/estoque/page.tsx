@@ -13,6 +13,9 @@ import {
 } from "@/lib/client-api";
 import { brl, km } from "@/lib/format";
 
+const TIER_LABEL: Record<string, string> = { BRONZE: "Bronze", SILVER: "Prata", GOLD: "Ouro", PLATINUM: "Platinum" };
+const TIER_COLOR: Record<string, string> = { BRONZE: "var(--bronze)", SILVER: "var(--prata)", GOLD: "var(--ouro)", PLATINUM: "var(--platinum)" };
+
 const STATUS: Record<string, { label: string; tone: "green" | "amber" | "brand" | "muted" | "red" }> = {
   ACTIVE: { label: "Ativo", tone: "green" },
   RESERVED: { label: "Reservado", tone: "amber" },
@@ -104,9 +107,15 @@ export default function EstoquePage() {
               </div>
 
               <div className="flex-1 min-w-[160px]">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
                   <h3 className="text-[14.5px] font-semibold">{v.title}</h3>
                   <Badge tone={STATUS[v.status]?.tone ?? "muted"}>{STATUS[v.status]?.label ?? v.status}</Badge>
+                  {v.featuredTier && v.featuredTier !== "NONE" && (
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-wide text-white px-2 py-0.5 rounded" style={{ background: TIER_COLOR[v.featuredTier] }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.9H22l-5.7 4.2 2.2 7L12 15.9 5.5 20.1l2.2-7L2 8.9h7.4z" /></svg>
+                      {TIER_LABEL[v.featuredTier]}
+                    </span>
+                  )}
                 </div>
                 <div className="text-muted text-[12.5px] mt-1">
                   {v.yearFab}/{v.yearModel} · {km(v.mileageKm)} · {v._count.media} foto(s) · {v.views} views · {v._count.leads} leads
@@ -126,6 +135,12 @@ export default function EstoquePage() {
                     <option key={s} value={s}>{STATUS[s]!.label}</option>
                   ))}
                 </select>
+                <Link href={`/painel/destaque/${v.id}`}>
+                  <Button size="sm" variant="ghost" title="Impulsionar anúncio">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.9H22l-5.7 4.2 2.2 7L12 15.9 5.5 20.1l2.2-7L2 8.9h7.4z" /></svg>
+                    Destacar
+                  </Button>
+                </Link>
                 <Link href={`/painel/estoque/${v.id}`}>
                   <Button size="sm" variant="ghost">Editar</Button>
                 </Link>

@@ -78,12 +78,28 @@ export interface MyVehicle {
   yearModel: number;
   yearFab: number;
   views: number;
+  featuredTier: string;
   media: { url: string }[];
   _count: { media: number; leads: number };
 }
 
 export function fetchMyVehicles(): Promise<MyVehicle[]> {
   return authFetch<MyVehicle[]>("/vehicles/mine");
+}
+
+// ---- Destaque (impulsionamento) ----
+export interface FeaturedTierInfo {
+  tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+  label: string;
+  price: number;
+  durationDays: number;
+  reach: string;
+}
+
+export async function fetchTiers(): Promise<FeaturedTierInfo[]> {
+  const res = await fetch(`${API}/api/featured/tiers`);
+  if (!res.ok) return [];
+  return (await res.json()) as FeaturedTierInfo[];
 }
 
 // ---- Admin da plataforma ----

@@ -75,6 +75,8 @@ pnpm dev
 | `GET` | `/api/vehicles/mine` | Estoque do próprio usuário (guarded) |
 | `PATCH` | `/api/vehicles/:id` | Edita anúncio / muda status (dono) |
 | `DELETE` | `/api/vehicles/:id` | Remove anúncio (dono) |
+| `GET` | `/api/featured/tiers` | Planos de destaque (Bronze→Platinum) |
+| `POST` | `/api/vehicles/:id/feature` | Contrata destaque (dono) — sobe no ranking |
 | `GET` | `/api/tenants/current` | Vitrine do tenant (por subdomínio/header) |
 | `GET` | `/api/catalog/makes` | Marcas do catálogo (com contagem) |
 | `GET` | `/api/catalog/models` | Modelos do catálogo (`make`, `segment`, `fuel`, `q`) — base de prefill |
