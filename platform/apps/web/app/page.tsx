@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@motora/ui";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { VehicleCard } from "@/components/VehicleCard";
@@ -26,8 +27,8 @@ export default async function MarketplacePage() {
         </nav>
         <div className="ml-auto flex items-center gap-2.5">
           <ThemeToggle />
-          <Button variant="ghost" size="sm">Entrar</Button>
-          <Button size="sm">Anunciar grátis</Button>
+          <Link href="/entrar"><Button variant="ghost" size="sm">Entrar</Button></Link>
+          <Link href="/entrar"><Button size="sm">Anunciar grátis</Button></Link>
         </div>
       </header>
 
