@@ -13,6 +13,7 @@ import { PostsaleModule } from "./modules/postsale/postsale.module";
 import { BillingModule } from "./modules/billing/billing.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { FeaturedModule } from "./modules/featured/featured.module";
+import { AiModule } from "./modules/ai/ai.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -31,6 +32,7 @@ import { HealthModule } from "./modules/health/health.module";
     BillingModule,
     AdminModule,
     FeaturedModule,
+    AiModule,
     DashboardModule,
     HealthModule,
   ],

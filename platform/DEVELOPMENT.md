@@ -77,6 +77,9 @@ pnpm dev
 | `DELETE` | `/api/vehicles/:id` | Remove anúncio (dono) |
 | `GET` | `/api/featured/tiers` | Planos de destaque (Bronze→Platinum) |
 | `POST` | `/api/vehicles/:id/feature` | Contrata destaque (dono) — sobe no ranking |
+| `GET` | `/api/vehicles/:id/ai/price` | Sugestão de preço (comparáveis reais) — dono |
+| `GET` | `/api/vehicles/:id/ai/score` | Pontuação de qualidade + sugestões — dono |
+| `POST` | `/api/vehicles/:id/ai/description` | Gera descrição (LLM se `AI_API_KEY`, senão template) — dono |
 | `GET` | `/api/tenants/current` | Vitrine do tenant (por subdomínio/header) |
 | `GET` | `/api/catalog/makes` | Marcas do catálogo (com contagem) |
 | `GET` | `/api/catalog/models` | Modelos do catálogo (`make`, `segment`, `fuel`, `q`) — base de prefill |

@@ -102,6 +102,30 @@ export async function fetchTiers(): Promise<FeaturedTierInfo[]> {
   return (await res.json()) as FeaturedTierInfo[];
 }
 
+// ---- Inteligência Artificial ----
+export interface AiScore {
+  score: number;
+  breakdown: { fotos: number; descricao: number; preco: number; completude: number };
+  suggestions: string[];
+}
+export interface AiPrice {
+  sampleSize: number;
+  current: number;
+  suggested: number;
+  verdict: "BELOW" | "AT" | "ABOVE" | "NO_DATA";
+  diffPct?: number;
+  market?: { median: number; min: number; max: number };
+}
+export interface AiDescription {
+  text: string;
+  source: "llm" | "template";
+  llmConfigured: boolean;
+}
+
+export const aiScore = (id: string) => authFetch<AiScore>(`/vehicles/${id}/ai/score`);
+export const aiPrice = (id: string) => authFetch<AiPrice>(`/vehicles/${id}/ai/price`);
+export const aiDescription = (id: string) => authPost<AiDescription>(`/vehicles/${id}/ai/description`, {});
+
 // ---- Admin da plataforma ----
 export interface AdminOverview {
   mrr: number;

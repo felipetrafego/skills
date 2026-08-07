@@ -3,8 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Card } from "@motora/ui";
-import { authFetch, authPatch, AuthError } from "@/lib/client-api";
+import { Button, Card, Badge } from "@motora/ui";
+import {
+  authFetch, authPatch, AuthError,
+  aiScore, aiPrice, aiDescription,
+  type AiScore, type AiPrice,
+} from "@/lib/client-api";
+import { brl } from "@/lib/format";
 
 const FUELS = [
   ["FLEX", "Flex"], ["GASOLINE", "Gasolina"], ["ETHANOL", "Etanol"],
@@ -32,6 +37,20 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
   const [form, setForm] = useState<Form | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scoreRes, setScoreRes] = useState<AiScore | null>(null);
+  const [priceRes, setPriceRes] = useState<AiPrice | null>(null);
+  const [aiBusy, setAiBusy] = useState<string | null>(null);
+
+  async function runAi<T>(kind: string, fn: () => Promise<T>, apply: (r: T) => void) {
+    setAiBusy(kind);
+    try {
+      apply(await fn());
+    } catch (e) {
+      if (e instanceof AuthError) router.replace("/entrar");
+    } finally {
+      setAiBusy(null);
+    }
+  }
 
   useEffect(() => {
     authFetch<Record<string, unknown>>(`/vehicles/${params.id}`)
@@ -94,6 +113,53 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
         <Link href="/painel/estoque" className="hover:text-text">Estoque</Link> › Editar anúncio
       </div>
       <h1 className="text-[21px] font-semibold mb-5">Editar anúncio</h1>
+
+      <Card className="p-[18px] mb-4" style={{ background: "var(--brand-tint)", borderColor: "transparent" }}>
+        <div className="flex items-center gap-2 mb-3">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6 7 18.2l1.9-5.8L4 8.8h6.1z" /></svg>
+          <b className="text-brand text-[14px]">Assistente de IA</b>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="ghost" loading={aiBusy === "score"} onClick={() => runAi("score", () => aiScore(params.id), setScoreRes)}>Analisar anúncio</Button>
+          <Button size="sm" variant="ghost" loading={aiBusy === "price"} onClick={() => runAi("price", () => aiPrice(params.id), setPriceRes)}>Sugerir preço</Button>
+          <Button size="sm" variant="ghost" loading={aiBusy === "desc"} onClick={() => runAi("desc", () => aiDescription(params.id), (r) => set("description", r.text))}>Gerar descrição</Button>
+        </div>
+
+        {scoreRes && (
+          <div className="mt-4 flex items-start gap-4 flex-wrap">
+            <div className="text-center">
+              <div className="text-[30px] font-bold tracking-tight leading-none">{scoreRes.score}</div>
+              <div className="text-[11px] text-muted">de 100</div>
+            </div>
+            <ul className="flex-1 min-w-[220px] flex flex-col gap-1.5">
+              {scoreRes.suggestions.length === 0 ? (
+                <li className="text-[13px] text-success">Anúncio completo — ótimo trabalho!</li>
+              ) : (
+                scoreRes.suggestions.map((s, i) => (
+                  <li key={i} className="text-[13px] text-muted flex gap-2"><span className="text-accent">•</span>{s}</li>
+                ))
+              )}
+            </ul>
+          </div>
+        )}
+
+        {priceRes && (
+          <div className="mt-4 text-[13px]">
+            {priceRes.verdict === "NO_DATA" ? (
+              <span className="text-muted">Ainda não há anúncios comparáveis suficientes para sugerir um preço.</span>
+            ) : (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span>Preço sugerido: <b className="text-[15px]">{brl(priceRes.suggested)}</b></span>
+                <Badge tone={priceRes.verdict === "ABOVE" ? "amber" : "green"}>
+                  {priceRes.verdict === "ABOVE" ? `${priceRes.diffPct}% acima do mercado` : priceRes.verdict === "BELOW" ? "abaixo do mercado" : "alinhado ao mercado"}
+                </Badge>
+                <span className="text-muted text-[12px]">({priceRes.sampleSize} comparáveis)</span>
+                <button type="button" onClick={() => set("price", String(priceRes.suggested))} className="text-brand text-[12.5px] font-medium hover:underline">Aplicar</button>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Card className="p-[18px] grid sm:grid-cols-2 gap-4">
