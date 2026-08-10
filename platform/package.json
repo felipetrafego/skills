@@ -18,6 +18,8 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:catalog": "tsx prisma/seed-catalog.ts",
+    "db:seed:demo": "tsx prisma/seed-demo-vehicles.ts",
+    "gen:demo-svgs": "node scripts/gen-demo-car-svgs.mjs",
     "db:rls": "prisma db execute --file prisma/policies/rls.sql --schema prisma/schema.prisma",
     "db:studio": "prisma studio"
   },

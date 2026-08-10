@@ -8,13 +8,18 @@ export function VehicleCard({ v }: { v: VehicleListItem }) {
   return (
     <Link href={`/veiculo/${v.id}`} className="block">
       <Card className="overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer">
-        <div className="relative aspect-[4/3] grid place-items-center bg-surface-2">
-          <svg className="w-2/5 h-2/5 opacity-20 text-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13" />
-            <path d="M5 13h14v4H5z" />
-            <circle cx="7.5" cy="17" r="1.3" />
-            <circle cx="16.5" cy="17" r="1.3" />
-          </svg>
+        <div className="relative aspect-[4/3] grid place-items-center bg-surface-2 overflow-hidden">
+          {v.media?.[0]?.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={v.media[0].url} alt={v.title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <svg className="w-2/5 h-2/5 opacity-20 text-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13" />
+              <path d="M5 13h14v4H5z" />
+              <circle cx="7.5" cy="17" r="1.3" />
+              <circle cx="16.5" cy="17" r="1.3" />
+            </svg>
+          )}
           {v.featuredTier && v.featuredTier !== "NONE" && (
             <span className="absolute top-2.5 left-2.5">
               <TierBadge tier={v.featuredTier} />

@@ -151,6 +151,19 @@ Base reutilizável (`CatalogModel`) para *prefill* ao criar anúncios — **não
 pnpm db:seed:catalog   # popula/atualiza 7 marcas (~120 modelos)
 ```
 
+### Veículos de demonstração
+
+Quatro BMWs de exemplo para a loja `auto-prime` (aparecem no marketplace):
+
+```bash
+pnpm db:seed:demo      # cria/atualiza 4 anúncios BMW de exemplo
+pnpm gen:demo-svgs     # (re)gera os placeholders ilustrativos em public/demo-cars
+```
+
+> **Imagens:** os cards usam **placeholders SVG ilustrativos** (silhueta de cupê
+> colorida, marcados "Foto ilustrativa"), **não** fotos das montadoras. O lojista
+> substitui pela foto própria/licenciada via upload de mídia.
+
 Marcas cobertas: **BMW, Toyota, Volkswagen, Chevrolet, Fiat, Honda, Hyundai**. Cada marca é
 um arquivo em `prisma/catalog/` (fácil adicionar novas), agregadas em `prisma/catalog/index.ts`.
 

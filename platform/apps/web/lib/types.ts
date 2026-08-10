@@ -12,6 +12,7 @@ export interface VehicleListItem {
   city?: string | null;
   state?: string | null;
   featuredTier?: "NONE" | "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+  media?: { url: string; type?: string }[];
 }
 
 export interface SearchResult {
