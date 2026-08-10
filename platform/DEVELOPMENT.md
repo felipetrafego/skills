@@ -51,6 +51,7 @@ pnpm dev
 | `pnpm build` | Build de todos os apps/packages |
 | `pnpm typecheck` | Checagem de tipos |
 | `pnpm lint` | Lint |
+| `pnpm --filter @motora/api test` | Testes unitários da API (Jest, sem banco) |
 | `pnpm db:migrate` | Cria/aplica migração de desenvolvimento |
 | `pnpm db:push` | Aplica o schema sem migração (protótipo) |
 | `pnpm db:seed` | Popula dados de demonstração |

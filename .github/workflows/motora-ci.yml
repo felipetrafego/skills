@@ -54,5 +54,8 @@ jobs:
       - name: Build API (NestJS — inclui typecheck)
         run: pnpm --filter @motora/api build
 
+      - name: Test API (Jest — unit, sem banco)
+        run: pnpm --filter @motora/api test
+
       - name: Build Web (Next.js — inclui typecheck)
         run: pnpm --filter @motora/web build
