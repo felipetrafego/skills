@@ -499,6 +499,17 @@ export async function uploadVehiclePhoto(vehicleId: string, file: File): Promise
   await authPost(`/vehicles/${vehicleId}/media`, { url: pre.publicUrl, type: "PHOTO" });
 }
 
+export interface VehicleMediaItem {
+  id: string;
+  type: "PHOTO" | "VIDEO" | "VIEW_360" | "DOCUMENT";
+  url: string;
+  position: number;
+}
+export const fetchVehicleMedia = (vehicleId: string) =>
+  authFetch<VehicleMediaItem[]>(`/vehicles/${vehicleId}/media`);
+export const deleteVehicleMedia = (vehicleId: string, mediaId: string) =>
+  authDelete(`/vehicles/${vehicleId}/media/${mediaId}`);
+
 export interface CreatedVehicle {
   id: string;
 }

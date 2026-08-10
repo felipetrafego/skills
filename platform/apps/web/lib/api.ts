@@ -18,7 +18,7 @@ export async function searchVehicles(params: Record<string, string> = {}): Promi
   try {
     const qs = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/api/vehicles${qs ? `?${qs}` : ""}`, {
-      next: { revalidate: 30 },
+      next: { revalidate: 5 },
     });
     if (!res.ok) throw new Error(`API ${res.status}`);
     return (await res.json()) as SearchResult;
@@ -33,7 +33,7 @@ export async function fetchStore(slug: string): Promise<Store | null> {
   try {
     const res = await fetch(`${API_URL}/api/tenants/current`, {
       headers: { "x-tenant": slug },
-      next: { revalidate: 30 },
+      next: { revalidate: 5 },
     });
     if (!res.ok) return null;
     return (await res.json()) as Store;
@@ -51,7 +51,7 @@ export async function searchStoreVehicles(
     const qs = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/api/vehicles${qs ? `?${qs}` : ""}`, {
       headers: { "x-tenant": slug },
-      next: { revalidate: 30 },
+      next: { revalidate: 5 },
     });
     if (!res.ok) throw new Error(`API ${res.status}`);
     return (await res.json()) as SearchResult;
@@ -72,7 +72,7 @@ export async function fetchLandingPage(tenant: string, slug: string): Promise<Pu
   try {
     const res = await fetch(`${API_URL}/api/marketing/l/${slug}`, {
       headers: { "x-tenant": tenant },
-      next: { revalidate: 30 },
+      next: { revalidate: 5 },
     });
     if (!res.ok) return null;
     return (await res.json()) as PublicLanding;

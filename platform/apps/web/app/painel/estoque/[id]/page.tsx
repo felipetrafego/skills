@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card, Badge } from "@motora/ui";
 import {
   authFetch, authPatch, AuthError,
   aiScore, aiPrice, aiDescription,
-  type AiScore, type AiPrice,
+  fetchVehicleMedia, uploadVehiclePhoto, deleteVehicleMedia,
+  type AiScore, type AiPrice, type VehicleMediaItem,
 } from "@/lib/client-api";
 import { brl } from "@/lib/format";
 
@@ -40,6 +41,12 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
   const [scoreRes, setScoreRes] = useState<AiScore | null>(null);
   const [priceRes, setPriceRes] = useState<AiPrice | null>(null);
   const [aiBusy, setAiBusy] = useState<string | null>(null);
+  const [media, setMedia] = useState<VehicleMediaItem[]>([]);
+  const [photoBusy, setPhotoBusy] = useState(false);
+
+  const reloadMedia = useCallback(() => {
+    fetchVehicleMedia(params.id).then(setMedia).catch(() => setMedia([]));
+  }, [params.id]);
 
   async function runAi<T>(kind: string, fn: () => Promise<T>, apply: (r: T) => void) {
     setAiBusy(kind);
@@ -72,10 +79,40 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
         if (e instanceof AuthError) router.replace("/entrar");
         else setError("Anúncio não encontrado");
       });
-  }, [params.id, router]);
+    reloadMedia();
+  }, [params.id, router, reloadMedia]);
 
   function set<K extends keyof Form>(k: K, val: string) {
     setForm((f) => (f ? { ...f, [k]: val } : f));
+  }
+
+  async function addPhotos(fileList: FileList | null) {
+    const files = Array.from(fileList ?? []);
+    if (files.length === 0) return;
+    setPhotoBusy(true);
+    setError(null);
+    try {
+      for (const f of files) await uploadVehiclePhoto(params.id, f);
+      reloadMedia();
+    } catch (err) {
+      if (err instanceof AuthError) return router.replace("/entrar");
+      setError("Não foi possível enviar a(s) foto(s)");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function removePhoto(mediaId: string) {
+    setPhotoBusy(true);
+    try {
+      await deleteVehicleMedia(params.id, mediaId);
+      reloadMedia();
+    } catch (err) {
+      if (err instanceof AuthError) return router.replace("/entrar");
+      setError("Não foi possível remover a foto");
+    } finally {
+      setPhotoBusy(false);
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -159,6 +196,39 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
             )}
           </div>
         )}
+      </Card>
+
+      <Card className="p-[18px] mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className={capCls}>Fotos do anúncio</span>
+          <span className="text-[12px] text-faint">{media.length} foto(s)</span>
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+          {media.map((m) => (
+            <div key={m.id} className="relative aspect-square rounded-[10px] overflow-hidden border border-border group">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={m.url} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removePhoto(m.id)}
+                disabled={photoBusy}
+                aria-label="Remover foto"
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/55 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+          ))}
+          <label className={`aspect-square rounded-[10px] border border-dashed border-border-strong grid place-items-center cursor-pointer hover:border-brand transition-colors text-muted ${photoBusy ? "opacity-50 pointer-events-none" : ""}`}>
+            {photoBusy ? (
+              <span className="text-[11px]">Enviando…</span>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+            )}
+            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => addPhotos(e.target.files)} />
+          </label>
+        </div>
+        <p className="text-[11.5px] text-faint mt-2.5">A primeira foto é a capa do anúncio no marketplace.</p>
       </Card>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
