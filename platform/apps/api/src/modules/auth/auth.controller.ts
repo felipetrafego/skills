@@ -3,10 +3,12 @@ import { ConfigService } from "@nestjs/config";
 import { randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
 import { AuthService } from "./auth.service";
+import { AuthTokensService } from "./auth-tokens.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { TwoFaCodeDto, TwoFaLoginDto } from "./dto/twofa.dto";
 import { OAuthDevDto } from "./dto/oauth-dev.dto";
+import { ForgotPasswordDto, ResetPasswordDto, VerifyEmailDto } from "./dto/password.dto";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import type { JwtPayload } from "../../common/auth/jwt-payload";
@@ -15,6 +17,7 @@ import type { JwtPayload } from "../../common/auth/jwt-payload";
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
+    private readonly tokens: AuthTokensService,
     private readonly config: ConfigService,
   ) {}
 
@@ -63,6 +66,33 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   disable2fa(@CurrentUser() user: JwtPayload, @Body() dto: TwoFaCodeDto) {
     return this.auth.disable2fa(user.sub, dto.code);
+  }
+
+  // ---- Redefinição de senha ----
+  @Post("forgot-password")
+  @HttpCode(200)
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.tokens.requestPasswordReset(dto.email);
+  }
+
+  @Post("reset-password")
+  @HttpCode(200)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.tokens.resetPassword(dto.token, dto.password);
+  }
+
+  // ---- Verificação de e-mail ----
+  @Post("verify-email/request")
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  requestEmailVerification(@CurrentUser() user: JwtPayload) {
+    return this.tokens.requestEmailVerification(user.sub);
+  }
+
+  @Post("verify-email")
+  @HttpCode(200)
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.tokens.verifyEmail(dto.token);
   }
 
   // ---- Login social (OAuth) ----

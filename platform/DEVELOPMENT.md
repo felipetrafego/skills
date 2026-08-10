@@ -72,6 +72,10 @@ pnpm dev
 | `POST` | `/api/auth/2fa/setup` · `/enable` · `/disable` | Configura/ativa/desativa 2FA (TOTP) |
 | `GET` | `/api/auth/2fa/status` | Estado do 2FA do usuário |
 | `POST` | `/api/auth/2fa/login` | 2º passo do login quando o 2FA está ativo |
+| `POST` | `/api/auth/forgot-password` | Solicita link de redefinição (resposta uniforme, não vaza existência) |
+| `POST` | `/api/auth/reset-password` | Define nova senha via token (uso único, expira em 1h) |
+| `POST` | `/api/auth/verify-email/request` · `/verify-email` | Solicita / confirma verificação de e-mail |
+| `GET` | `/api/team` · `POST /invite` · `PATCH /:id/role` · `DELETE /:id` | Equipe do lojista (RBAC): lista, convida, muda papel, remove |
 | `GET` | `/api/auth/oauth/providers` | Provedores sociais configurados (Google/Microsoft/Apple) |
 | `GET` | `/api/auth/oauth/:provider` · `/callback` | Fluxo OAuth2 (redirect + callback) |
 | `GET` | `/api/vehicles` | Busca do marketplace (filtros, paginação) |

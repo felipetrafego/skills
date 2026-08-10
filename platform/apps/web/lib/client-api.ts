@@ -65,6 +65,33 @@ export async function twofaLogin(challenge: string, code: string) {
   setToken(data.accessToken);
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await fetch(`${API}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  // Resposta sempre uniforme (não revela se o e-mail existe) — nada a tratar.
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const res = await fetch(`${API}/api/auth/reset-password`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res));
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+  const res = await fetch(`${API}/api/auth/verify-email`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res));
+}
+
 export const twofaStatus = () => authFetch<{ enabled: boolean }>("/auth/2fa/status");
 export const twofaSetup = () => authPost<{ secret: string; otpauth: string }>("/auth/2fa/setup", {});
 export const twofaEnable = (code: string) => authPost<{ enabled: boolean }>("/auth/2fa/enable", { code });

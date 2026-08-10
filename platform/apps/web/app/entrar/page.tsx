@@ -97,6 +97,9 @@ export default function LoginPage() {
                 </label>
                 {error && <p className="text-danger text-[13px]">{error}</p>}
                 <Button type="submit" loading={loading} className="w-full mt-1">Entrar</Button>
+                <Link href="/esqueci-senha" className="text-[12.5px] text-muted hover:text-text text-center">
+                  Esqueci minha senha
+                </Link>
               </form>
 
               <div className="flex items-center gap-3 my-4">

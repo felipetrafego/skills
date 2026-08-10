@@ -47,6 +47,11 @@ enum OAuthProvider {
   MICROSOFT
 }
 
+enum VerificationTokenType {
+  PASSWORD_RESET
+  EMAIL_VERIFY
+}
+
 enum Fuel {
   FLEX
   GASOLINE
@@ -235,6 +240,7 @@ model User {
 
   memberships   Membership[]
   oauthAccounts OAuthAccount[]
+  verificationTokens VerificationToken[]
   vehicles      Vehicle[]      @relation("OwnerVehicles")
   favorites     Favorite[]
   savedSearches SavedSearch[]
@@ -269,6 +275,20 @@ model OAuthAccount {
 
   @@unique([provider, providerAccountId])
   @@index([userId])
+}
+
+model VerificationToken {
+  id        String                @id @default(uuid())
+  userId    String
+  type      VerificationTokenType
+  tokenHash String                @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
 }
 
 // ============================================================
