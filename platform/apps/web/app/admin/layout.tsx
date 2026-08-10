@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, clearToken } from "@/lib/client-api";
+import { getToken, logout as apiLogout } from "@/lib/client-api";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="ml-auto flex items-center gap-2.5">
           <ThemeToggle />
           <button
-            onClick={() => { clearToken(); router.push("/entrar"); }}
+            onClick={async () => { await apiLogout(); router.push("/entrar"); }}
             className="text-[13px] text-muted hover:text-danger transition-colors"
           >
             Sair

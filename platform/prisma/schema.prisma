@@ -241,6 +241,7 @@ model User {
   memberships   Membership[]
   oauthAccounts OAuthAccount[]
   verificationTokens VerificationToken[]
+  refreshTokens RefreshToken[]
   vehicles      Vehicle[]      @relation("OwnerVehicles")
   favorites     Favorite[]
   savedSearches SavedSearch[]
@@ -289,6 +290,20 @@ model VerificationToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ============================================================

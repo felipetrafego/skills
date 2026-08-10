@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
+import { createHash, randomUUID } from "node:crypto";
 import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../../prisma/prisma.service";
 import type { JwtPayload } from "../../common/auth/jwt-payload";
@@ -264,13 +265,80 @@ export class AuthService {
         expiresIn: this.config.get<string>("JWT_ACCESS_TTL", "15m"),
       }),
       this.jwt.signAsync(
-        { sub: payload.sub },
+        { sub: payload.sub, jti: randomUUID() },
         {
           secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET"),
           expiresIn: this.config.get<string>("JWT_REFRESH_TTL", "30d"),
         },
       ),
     ]);
+    await this.persistRefreshToken(payload.sub, refreshToken);
     return { accessToken, refreshToken, user: { id: payload.sub, email: payload.email } };
   }
+
+  /** Guarda apenas o hash do refresh token (rotação/revogação server-side). */
+  private async persistRefreshToken(userId: string, refreshToken: string, replacedById?: string) {
+    const decoded = this.jwt.decode(refreshToken) as { exp?: number } | null;
+    const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 30 * 864e5);
+    await this.prisma.refreshToken.create({
+      data: { userId, tokenHash: hashToken(refreshToken), expiresAt, replacedById: replacedById ?? null },
+    });
+  }
+
+  /**
+   * Rotaciona o refresh token: valida a assinatura e o registro (não revogado,
+   * não expirado), revoga o antigo e emite um novo par. Relê as memberships para
+   * propagar mudanças de papel. Detecta reuso de token já revogado e, nesse caso,
+   * revoga toda a cadeia do usuário (possível vazamento).
+   */
+  async refresh(refreshToken: string) {
+    let sub: string;
+    try {
+      const payload = await this.jwt.verifyAsync<{ sub: string }>(refreshToken, {
+        secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET"),
+      });
+      sub = payload.sub;
+    } catch {
+      throw new UnauthorizedException("Sessão expirada");
+    }
+
+    const stored = await this.prisma.refreshToken.findUnique({ where: { tokenHash: hashToken(refreshToken) } });
+    if (!stored || stored.userId !== sub || stored.expiresAt < new Date()) {
+      throw new UnauthorizedException("Sessão expirada");
+    }
+    if (stored.revokedAt) {
+      // Reuso de um token já rotacionado: revoga tudo por segurança.
+      await this.prisma.refreshToken.updateMany({
+        where: { userId: sub, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      throw new UnauthorizedException("Sessão inválida");
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: sub },
+      include: { memberships: { where: { status: "ACTIVE" }, take: 1 } },
+    });
+    if (!user) throw new UnauthorizedException("Sessão expirada");
+
+    const tokens = await this.issueTokens(this.payloadFor(user, user.memberships[0]));
+    await this.prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { revokedAt: new Date() },
+    });
+    return tokens;
+  }
+
+  /** Logout: revoga o refresh token apresentado (idempotente). */
+  async logout(refreshToken: string) {
+    await this.prisma.refreshToken.updateMany({
+      where: { tokenHash: hashToken(refreshToken), revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return { ok: true };
+  }
+}
+
+function hashToken(raw: string): string {
+  return createHash("sha256").update(raw).digest("hex");
 }

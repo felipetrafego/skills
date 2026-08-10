@@ -9,6 +9,7 @@ import { LoginDto } from "./dto/login.dto";
 import { TwoFaCodeDto, TwoFaLoginDto } from "./dto/twofa.dto";
 import { OAuthDevDto } from "./dto/oauth-dev.dto";
 import { ForgotPasswordDto, ResetPasswordDto, VerifyEmailDto } from "./dto/password.dto";
+import { RefreshDto } from "./dto/refresh.dto";
 import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
 import type { JwtPayload } from "../../common/auth/jwt-payload";
@@ -36,6 +37,18 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: JwtPayload) {
     return user;
+  }
+
+  @Post("refresh")
+  @HttpCode(200)
+  refresh(@Body() dto: RefreshDto) {
+    return this.auth.refresh(dto.refreshToken);
+  }
+
+  @Post("logout")
+  @HttpCode(200)
+  logout(@Body() dto: RefreshDto) {
+    return this.auth.logout(dto.refreshToken);
   }
 
   @Post("2fa/login")

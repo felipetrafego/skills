@@ -2,6 +2,7 @@
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 const TOKEN_KEY = "motora-token";
+const REFRESH_KEY = "motora-refresh";
 
 export class AuthError extends Error {}
 
@@ -12,8 +13,64 @@ export function getToken(): string | null {
 export function setToken(token: string) {
   window.localStorage.setItem(TOKEN_KEY, token);
 }
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(REFRESH_KEY);
+}
+export function setRefreshToken(token: string) {
+  window.localStorage.setItem(REFRESH_KEY, token);
+}
+/** Guarda o par de tokens devolvido por login/refresh. */
+function storeSession(data: { accessToken?: string; refreshToken?: string }) {
+  if (data.accessToken) setToken(data.accessToken);
+  if (data.refreshToken) setRefreshToken(data.refreshToken);
+}
 export function clearToken() {
   window.localStorage.removeItem(TOKEN_KEY);
+  window.localStorage.removeItem(REFRESH_KEY);
+}
+
+/**
+ * Renova o access token usando o refresh token (rotação server-side).
+ * Deduplica chamadas concorrentes: vários 401 simultâneos disparam um único refresh.
+ */
+let refreshing: Promise<void> | null = null;
+function refreshSession(): Promise<void> {
+  if (refreshing) return refreshing;
+  refreshing = (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) throw new AuthError("Sem sessão");
+    const res = await fetch(`${API}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) {
+      clearToken();
+      throw new AuthError("Sessão expirada");
+    }
+    storeSession((await res.json()) as { accessToken: string; refreshToken: string });
+  })().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+/** Encerra a sessão: revoga o refresh no servidor e limpa o armazenamento local. */
+export async function logout(): Promise<void> {
+  const refreshToken = getRefreshToken();
+  if (refreshToken) {
+    try {
+      await fetch(`${API}/api/auth/logout`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      /* melhor esforço: mesmo offline, limpamos o local abaixo */
+    }
+  }
+  clearToken();
 }
 
 export async function login(
@@ -26,9 +83,14 @@ export async function login(
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) throw new Error("E-mail ou senha inválidos");
-  const data = (await res.json()) as { accessToken?: string; require2fa?: boolean; challenge?: string };
+  const data = (await res.json()) as {
+    accessToken?: string;
+    refreshToken?: string;
+    require2fa?: boolean;
+    challenge?: string;
+  };
   if (data.accessToken) {
-    setToken(data.accessToken);
+    storeSession(data);
     return {};
   }
   return { require2fa: true, challenge: data.challenge };
@@ -61,8 +123,8 @@ export async function twofaLogin(challenge: string, code: string) {
     body: JSON.stringify({ challenge, code }),
   });
   if (!res.ok) throw new Error("Código de verificação inválido");
-  const data = (await res.json()) as { accessToken: string };
-  setToken(data.accessToken);
+  const data = (await res.json()) as { accessToken: string; refreshToken?: string };
+  storeSession(data);
 }
 
 export async function forgotPassword(email: string): Promise<void> {
@@ -98,14 +160,19 @@ export const twofaEnable = (code: string) => authPost<{ enabled: boolean }>("/au
 export const twofaDisable = (code: string) => authPost<{ enabled: boolean }>("/auth/2fa/disable", { code });
 
 export async function authFetch<T>(path: string): Promise<T> {
-  const token = getToken();
-  if (!token) throw new AuthError("Sem sessão");
-  const res = await fetch(`${API}/api${path}`, {
-    headers: { authorization: `Bearer ${token}` },
-  });
-  if (res.status === 401 || res.status === 403) {
-    throw new AuthError("Sessão expirada");
+  const doFetch = () => {
+    const token = getToken();
+    if (!token) throw new AuthError("Sem sessão");
+    return fetch(`${API}/api${path}`, { headers: { authorization: `Bearer ${token}` } });
+  };
+
+  let res = await doFetch();
+  // Access token expirado (401): tenta renovar via refresh token e repete uma vez.
+  if (res.status === 401 && getRefreshToken()) {
+    await refreshSession();
+    res = await doFetch();
   }
+  if (res.status === 401 || res.status === 403) throw new AuthError("Sessão expirada");
   if (!res.ok) throw new Error(`Erro ${res.status}`);
   return (await res.json()) as T;
 }
@@ -121,16 +188,25 @@ export async function authDelete(path: string): Promise<void> {
 }
 
 async function authSend<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const token = getToken();
-  if (!token) throw new AuthError("Sem sessão");
-  const res = await fetch(`${API}/api${path}`, {
-    method,
-    headers: {
-      authorization: `Bearer ${token}`,
-      ...(body !== undefined ? { "content-type": "application/json" } : {}),
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const doSend = () => {
+    const token = getToken();
+    if (!token) throw new AuthError("Sem sessão");
+    return fetch(`${API}/api${path}`, {
+      method,
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body !== undefined ? { "content-type": "application/json" } : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  };
+
+  let res = await doSend();
+  // Access token expirado (401): renova via refresh e repete a requisição uma vez.
+  if (res.status === 401 && getRefreshToken()) {
+    await refreshSession();
+    res = await doSend();
+  }
   if (res.status === 401) throw new AuthError("Sessão expirada");
   if (!res.ok) throw new Error(await errorMessage(res));
   const text = await res.text();

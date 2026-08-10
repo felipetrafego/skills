@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { clearToken } from "@/lib/client-api";
+import { logout as apiLogout } from "@/lib/client-api";
 
 const NAV: { href: string; label: string; icon: ReactNode; disabled?: boolean }[] = [
   { href: "/painel", label: "Dashboard", icon: <path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z" /> },
@@ -24,8 +24,8 @@ export function PanelShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  function logout() {
-    clearToken();
+  async function logout() {
+    await apiLogout();
     router.push("/entrar");
   }
 
