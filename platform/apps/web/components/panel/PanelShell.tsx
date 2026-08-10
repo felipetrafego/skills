@@ -16,6 +16,7 @@ const NAV: { href: string; label: string; icon: ReactNode; disabled?: boolean }[
   { href: "/painel/automacoes", label: "Automações", icon: <path d="M13 2L3 14h9l-1 8 10-12h-9z" /> },
   { href: "/painel/relatorios", label: "Relatórios", icon: <><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></> },
   { href: "/painel/financeiro", label: "Financeiro", icon: <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /> },
+  { href: "/painel/usuarios", label: "Usuários", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></> },
   { href: "/painel/seguranca", label: "Segurança", icon: <><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /><path d="M9 12l2 2 4-4" /></> },
 ];
 

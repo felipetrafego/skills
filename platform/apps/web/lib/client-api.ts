@@ -104,10 +104,22 @@ async function authSend<T>(method: string, path: string, body?: unknown): Promis
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
-  if (res.status === 401 || res.status === 403) throw new AuthError("Sessão expirada");
-  if (!res.ok) throw new Error(`Erro ${res.status}`);
+  if (res.status === 401) throw new AuthError("Sessão expirada");
+  if (!res.ok) throw new Error(await errorMessage(res));
   const text = await res.text();
   return (text ? JSON.parse(text) : undefined) as T;
+}
+
+/** Extrai a mensagem amigável do corpo da resposta (NestJS: { message }). */
+async function errorMessage(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as { message?: string | string[] };
+    if (Array.isArray(data.message)) return data.message.join(", ");
+    if (data.message) return data.message;
+  } catch {
+    /* corpo vazio ou não-JSON */
+  }
+  return `Erro ${res.status}`;
 }
 
 // ---- Estoque do lojista ----
@@ -432,3 +444,31 @@ export interface PipelineColumn {
     createdAt: string;
   }[];
 }
+
+// ---- Usuário atual ----
+export type MembershipRole = "ADMIN" | "MANAGER" | "SELLER" | "MARKETING" | "FINANCE" | "SUPPORT";
+
+export interface Me {
+  sub: string;
+  email: string;
+  type: "SHOPKEEPER" | "INDIVIDUAL" | "PLATFORM_ADMIN";
+  tenantId?: string;
+  role?: MembershipRole;
+}
+export const fetchMe = () => authFetch<Me>("/auth/me");
+
+// ---- Equipe & permissões ----
+export interface TeamMember {
+  id: string;
+  userId?: string;
+  name: string;
+  email: string;
+  role: MembershipRole;
+  status: "ACTIVE" | "INVITED" | "SUSPENDED";
+}
+export const fetchTeam = () => authFetch<TeamMember[]>("/team");
+export const inviteMember = (b: { name: string; email: string; role: MembershipRole }) =>
+  authPost<TeamMember>("/team/invite", b);
+export const changeMemberRole = (id: string, role: MembershipRole) =>
+  authPatch<TeamMember>(`/team/${id}/role`, { role });
+export const removeMember = (id: string) => authDelete(`/team/${id}`);
