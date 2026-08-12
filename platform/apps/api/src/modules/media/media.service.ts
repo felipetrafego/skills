@@ -53,6 +53,24 @@ export class MediaService {
     return { ok: true };
   }
 
+  /** Promove uma mídia a capa (posição 0) e reordena as demais. */
+  async setCover(user: JwtPayload, mediaId: string) {
+    const media = await this.prisma.vehicleMedia.findUnique({ where: { id: mediaId } });
+    if (!media) throw new NotFoundException("Mídia não encontrada");
+    await this.assertOwnership(user, media.vehicleId);
+
+    const items = await this.prisma.vehicleMedia.findMany({
+      where: { vehicleId: media.vehicleId },
+      orderBy: { position: "asc" },
+      select: { id: true },
+    });
+    const ordered = [mediaId, ...items.map((m) => m.id).filter((id) => id !== mediaId)];
+    await this.prisma.$transaction(
+      ordered.map((id, i) => this.prisma.vehicleMedia.update({ where: { id }, data: { position: i } })),
+    );
+    return { ok: true };
+  }
+
   private async assertOwnership(user: JwtPayload, vehicleId: string) {
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id: vehicleId },

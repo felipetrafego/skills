@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { MediaService } from "./media.service";
 import { PresignDto } from "./dto/presign.dto";
 import { ConfirmMediaDto } from "./dto/confirm-media.dto";
@@ -34,6 +34,12 @@ export class MediaController {
     @Body() dto: ConfirmMediaDto,
   ) {
     return this.media.confirm(user, vehicleId, dto);
+  }
+
+  @Patch(":mediaId/cover")
+  @UseGuards(JwtAuthGuard)
+  setCover(@CurrentUser() user: JwtPayload, @Param("mediaId") mediaId: string) {
+    return this.media.setCover(user, mediaId);
   }
 
   @Delete(":mediaId")

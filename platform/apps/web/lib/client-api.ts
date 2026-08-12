@@ -533,6 +533,9 @@ export const deleteVehicleMedia = (vehicleId: string, mediaId: string) =>
 /** Anexa uma foto por URL (foto já hospedada pelo lojista). */
 export const addVehiclePhotoByUrl = (vehicleId: string, url: string) =>
   authPost<VehicleMediaItem>(`/vehicles/${vehicleId}/media`, { url, type: "PHOTO" });
+/** Define uma foto como capa do anúncio (posição 0). */
+export const setVehicleCover = (vehicleId: string, mediaId: string) =>
+  authPatch<{ ok: boolean }>(`/vehicles/${vehicleId}/media/${mediaId}/cover`, {});
 
 export interface CreatedVehicle {
   id: string;

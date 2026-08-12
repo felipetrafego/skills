@@ -7,7 +7,7 @@ import { Button, Card, Badge } from "@motora/ui";
 import {
   authFetch, authPatch, AuthError,
   aiScore, aiPrice, aiDescription,
-  fetchVehicleMedia, uploadVehiclePhoto, deleteVehicleMedia, addVehiclePhotoByUrl,
+  fetchVehicleMedia, uploadVehiclePhoto, deleteVehicleMedia, addVehiclePhotoByUrl, setVehicleCover,
   type AiScore, type AiPrice, type VehicleMediaItem,
 } from "@/lib/client-api";
 import { brl } from "@/lib/format";
@@ -120,6 +120,19 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
     }
   }
 
+  async function makeCover(mediaId: string) {
+    setPhotoBusy(true);
+    try {
+      await setVehicleCover(params.id, mediaId);
+      reloadMedia();
+    } catch (err) {
+      if (err instanceof AuthError) return router.replace("/entrar");
+      setError("Não foi possível definir a capa");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
   async function removePhoto(mediaId: string) {
     setPhotoBusy(true);
     try {
@@ -222,10 +235,23 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
           <span className="text-[12px] text-faint">{media.length} foto(s)</span>
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
-          {media.map((m) => (
+          {media.map((m, idx) => (
             <div key={m.id} className="relative aspect-square rounded-[10px] overflow-hidden border border-border group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={m.url} alt="" className="w-full h-full object-cover" />
+              {idx === 0 && (
+                <span className="absolute top-1 left-1 text-[10px] font-semibold uppercase tracking-wide text-white bg-brand/90 rounded px-1.5 py-0.5">Capa</span>
+              )}
+              {idx !== 0 && (
+                <button
+                  type="button"
+                  onClick={() => makeCover(m.id)}
+                  disabled={photoBusy}
+                  className="absolute bottom-1 left-1 right-1 text-[10.5px] font-medium text-white bg-black/55 rounded py-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                >
+                  Definir como capa
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => removePhoto(m.id)}
