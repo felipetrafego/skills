@@ -17,6 +17,11 @@ class BillingController {
     return this.billing.getSubscription(requireTenant(user));
   }
 
+  @Get("summary")
+  summary(@CurrentUser() user: JwtPayload) {
+    return this.billing.summary(requireTenant(user));
+  }
+
   @Post("subscribe")
   subscribe(@CurrentUser() user: JwtPayload, @Body() dto: SubscribeDto) {
     return this.billing.subscribe(requireTenant(user), dto);

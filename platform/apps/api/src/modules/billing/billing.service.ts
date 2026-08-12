@@ -73,6 +73,50 @@ export class BillingService {
     return this.getSubscription(tenantId);
   }
 
+  /** Resumo financeiro do lojista com dados reais agregados. */
+  async summary(tenantId: string) {
+    const [sub, sold, featured, offers, openInvoices] = await Promise.all([
+      this.getSubscription(tenantId),
+      // Receita de vendas: veículos marcados como vendidos.
+      this.prisma.vehicle.aggregate({
+        where: { tenantId, status: "SOLD" },
+        _sum: { price: true },
+        _count: true,
+      }),
+      // Gasto com destaques (impulsionamento) dos veículos da loja.
+      this.prisma.featurePurchase.aggregate({
+        where: { vehicle: { tenantId } },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      // Comissões de pós-venda já contratadas/pagas.
+      this.prisma.serviceOffer.aggregate({
+        where: { vehicle: { tenantId }, status: { in: ["CONTRACTED", "PAID"] } },
+        _sum: { commissionAmount: true },
+        _count: true,
+      }),
+      this.prisma.invoice.aggregate({
+        where: { tenantId, status: "OPEN" },
+        _sum: { amount: true },
+        _count: true,
+      }),
+    ]);
+
+    const num = (v: unknown) => Number(v ?? 0);
+    return {
+      // MRR = mensalidade do plano quando a assinatura está ativa/pendente.
+      mrr: sub.state === "ACTIVE" || sub.state === "PAST_DUE" ? sub.plan.priceMonthly : 0,
+      salesRevenue: num(sold._sum.price),
+      salesCount: sold._count,
+      featuredSpend: num(featured._sum.amount),
+      featuredCount: featured._count,
+      postsaleCommissions: num(offers._sum.commissionAmount),
+      postsaleCount: offers._count,
+      openInvoicesAmount: num(openInvoices._sum.amount),
+      openInvoicesCount: openInvoices._count,
+    };
+  }
+
   listInvoices(tenantId: string) {
     return this.prisma.invoice
       .findMany({ where: { tenantId }, orderBy: { dueAt: "desc" } })

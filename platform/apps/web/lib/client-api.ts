@@ -530,6 +530,18 @@ export interface InvoiceItem {
   paidAt: string | null;
   nfUrl: string | null;
 }
+export interface FinanceSummary {
+  mrr: number;
+  salesRevenue: number;
+  salesCount: number;
+  featuredSpend: number;
+  featuredCount: number;
+  postsaleCommissions: number;
+  postsaleCount: number;
+  openInvoicesAmount: number;
+  openInvoicesCount: number;
+}
+export const fetchFinanceSummary = () => authFetch<FinanceSummary>("/billing/summary");
 
 // ---- Tipos das respostas usadas no painel ----
 export interface DashboardSummary {

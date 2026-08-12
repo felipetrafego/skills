@@ -6,9 +6,11 @@ import { Button, Card, Badge } from "@motora/ui";
 import {
   authFetch,
   authPost,
+  fetchFinanceSummary,
   AuthError,
   type SubscriptionInfo,
   type InvoiceItem,
+  type FinanceSummary,
 } from "@/lib/client-api";
 import { brl } from "@/lib/format";
 
@@ -36,17 +38,20 @@ export default function FinanceiroPage() {
   const router = useRouter();
   const [sub, setSub] = useState<SubscriptionInfo | null>(null);
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
+  const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
-      const [s, inv] = await Promise.all([
+      const [s, inv, sum] = await Promise.all([
         authFetch<SubscriptionInfo>("/billing/subscription"),
         authFetch<InvoiceItem[]>("/billing/invoices"),
+        fetchFinanceSummary(),
       ]);
       setSub(s);
       setInvoices(inv);
+      setSummary(sum);
     } catch (e) {
       if (e instanceof AuthError) router.replace("/entrar");
       else setError("Não foi possível carregar o financeiro");
@@ -91,6 +96,24 @@ export default function FinanceiroPage() {
         <h1 className="text-[21px] font-semibold">Assinatura e faturas</h1>
         <p className="text-muted text-[13px] mt-0.5">Gerencie o plano da sua loja e o histórico de pagamentos.</p>
       </div>
+
+      {/* KPIs financeiros (dados reais) */}
+      {summary && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          {[
+            { label: "Receita de vendas", value: summary.salesRevenue, sub: `${summary.salesCount} veículo(s) vendido(s)`, tone: "text-success" },
+            { label: "Comissões pós-venda", value: summary.postsaleCommissions, sub: `${summary.postsaleCount} serviço(s)`, tone: "text-text" },
+            { label: "Gasto com destaques", value: summary.featuredSpend, sub: `${summary.featuredCount} contratação(ões)`, tone: "text-text" },
+            { label: "Mensalidade (plano)", value: summary.mrr, sub: summary.openInvoicesCount > 0 ? `${summary.openInvoicesCount} fatura(s) em aberto` : "em dia", tone: "text-text" },
+          ].map((k) => (
+            <Card key={k.label} className="p-4">
+              <div className="text-[11.5px] text-muted font-medium">{k.label}</div>
+              <div className={`text-[19px] font-bold tracking-tight mt-1 tabular-nums ${k.tone}`}>{brl(k.value)}</div>
+              <div className="text-[11.5px] text-faint mt-0.5">{k.sub}</div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Assinatura */}
       <Card className="p-[20px] mb-4">

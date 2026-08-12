@@ -110,6 +110,9 @@ pnpm dev
 | `GET` | `/api/reports/summary` | Relatório: leads, conversão, vendas, top veículos |
 | `GET` | `/api/reports/export/:type` | Exporta CSV (Excel) — `leads` ou `deals` |
 | `GET` | `/api/dashboard/summary` | KPIs, origem dos leads e funil (tenant) |
+| `GET` | `/api/billing/subscription` · `/summary` | Assinatura do lojista · resumo financeiro (vendas, comissões, destaques, MRR) |
+| `POST` | `/api/billing/subscribe` · `/invoices/:id/pay` | Assina o plano (1ª fatura) · paga fatura e renova o período |
+| `GET` | `/api/billing/invoices` | Histórico de faturas do lojista |
 | `POST` | `/api/vehicles/:id/events` | Registra evento do anúncio (view/click/contact/share) — público |
 | `POST` | `/api/vehicles/:id/favorite` | Favoritar/desfavoritar (toggle) — auth |
 | `GET` | `/api/vehicles/:id/stats` | Analytics do anúncio p/ o dono (dashboard grátis) |
