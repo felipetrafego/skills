@@ -7,7 +7,7 @@ import { Button, Card, Badge } from "@motora/ui";
 import {
   authFetch, authPatch, AuthError,
   aiScore, aiPrice, aiDescription,
-  fetchVehicleMedia, uploadVehiclePhoto, deleteVehicleMedia,
+  fetchVehicleMedia, uploadVehiclePhoto, deleteVehicleMedia, addVehiclePhotoByUrl,
   type AiScore, type AiPrice, type VehicleMediaItem,
 } from "@/lib/client-api";
 import { brl } from "@/lib/format";
@@ -43,6 +43,7 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
   const [aiBusy, setAiBusy] = useState<string | null>(null);
   const [media, setMedia] = useState<VehicleMediaItem[]>([]);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
 
   const reloadMedia = useCallback(() => {
     fetchVehicleMedia(params.id).then(setMedia).catch(() => setMedia([]));
@@ -97,6 +98,23 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
     } catch (err) {
       if (err instanceof AuthError) return router.replace("/entrar");
       setError("Não foi possível enviar a(s) foto(s)");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function addByUrl() {
+    const url = photoUrl.trim();
+    if (!/^https?:\/\//i.test(url)) return setError("Informe uma URL de imagem válida (https://…).");
+    setPhotoBusy(true);
+    setError(null);
+    try {
+      await addVehiclePhotoByUrl(params.id, url);
+      setPhotoUrl("");
+      reloadMedia();
+    } catch (err) {
+      if (err instanceof AuthError) return router.replace("/entrar");
+      setError("Não foi possível anexar a imagem por URL");
     } finally {
       setPhotoBusy(false);
     }
@@ -229,6 +247,16 @@ export default function EditVehiclePage({ params }: { params: { id: string } }) 
           </label>
         </div>
         <p className="text-[11.5px] text-faint mt-2.5">A primeira foto é a capa do anúncio no marketplace.</p>
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+          <input
+            className={`${inputCls} text-[13px]`}
+            placeholder="…ou cole a URL de uma foto (https://…)"
+            value={photoUrl}
+            onChange={(e) => setPhotoUrl(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void addByUrl(); } }}
+          />
+          <Button type="button" size="sm" variant="ghost" loading={photoBusy} onClick={addByUrl}>Anexar URL</Button>
+        </div>
       </Card>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">

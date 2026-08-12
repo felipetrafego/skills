@@ -530,6 +530,9 @@ export const fetchVehicleMedia = (vehicleId: string) =>
   authFetch<VehicleMediaItem[]>(`/vehicles/${vehicleId}/media`);
 export const deleteVehicleMedia = (vehicleId: string, mediaId: string) =>
   authDelete(`/vehicles/${vehicleId}/media/${mediaId}`);
+/** Anexa uma foto por URL (foto já hospedada pelo lojista). */
+export const addVehiclePhotoByUrl = (vehicleId: string, url: string) =>
+  authPost<VehicleMediaItem>(`/vehicles/${vehicleId}/media`, { url, type: "PHOTO" });
 
 export interface CreatedVehicle {
   id: string;
