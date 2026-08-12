@@ -3,7 +3,9 @@
 // Isolamento por tenant via `tenantId` + RLS no Postgres (ver migração de policies).
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" p/ dev local; targets Linux p/ hosts de produção (Render/Vercel).
+  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
