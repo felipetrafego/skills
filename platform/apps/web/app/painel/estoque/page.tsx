@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, Card, Badge } from "@motora/ui";
+import { Card, Badge } from "@motora/ui";
+import { ButtonLink } from "@/components/ButtonLink";
 import {
   fetchMyVehicles,
   authPatch,
@@ -77,19 +77,17 @@ export default function EstoquePage() {
             {items ? `${items.length} veículo(s) no estoque` : "Carregando…"}
           </p>
         </div>
-        <Link href="/painel/anunciar">
-          <Button size="sm">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
-            Novo anúncio
-          </Button>
-        </Link>
+        <ButtonLink href="/painel/anunciar" size="sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
+          Novo anúncio
+        </ButtonLink>
       </div>
 
       {items && items.length === 0 && (
         <Card className="p-10 text-center">
           <p className="text-[15px] font-medium">Seu estoque está vazio</p>
           <p className="text-muted text-[13px] mt-1 mb-4">Publique o primeiro anúncio da sua loja.</p>
-          <Link href="/painel/anunciar"><Button size="sm">Criar anúncio</Button></Link>
+          <ButtonLink href="/painel/anunciar" size="sm">Criar anúncio</ButtonLink>
         </Card>
       )}
 
@@ -135,15 +133,11 @@ export default function EstoquePage() {
                     <option key={s} value={s}>{STATUS[s]!.label}</option>
                   ))}
                 </select>
-                <Link href={`/painel/destaque/${v.id}`}>
-                  <Button size="sm" variant="ghost" title="Impulsionar anúncio">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.9H22l-5.7 4.2 2.2 7L12 15.9 5.5 20.1l2.2-7L2 8.9h7.4z" /></svg>
-                    Destacar
-                  </Button>
-                </Link>
-                <Link href={`/painel/estoque/${v.id}`}>
-                  <Button size="sm" variant="ghost">Editar</Button>
-                </Link>
+                <ButtonLink href={`/painel/destaque/${v.id}`} size="sm" variant="ghost" title="Impulsionar anúncio">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.9H22l-5.7 4.2 2.2 7L12 15.9 5.5 20.1l2.2-7L2 8.9h7.4z" /></svg>
+                  Destacar
+                </ButtonLink>
+                <ButtonLink href={`/painel/estoque/${v.id}`} size="sm" variant="ghost">Editar</ButtonLink>
                 <button
                   onClick={() => remove(v.id, v.title)}
                   disabled={busyId === v.id}

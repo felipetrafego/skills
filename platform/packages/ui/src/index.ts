@@ -1,4 +1,4 @@
-export { Button } from "./components/Button";
+export { Button, buttonClasses } from "./components/Button";
 export type { ButtonProps } from "./components/Button";
 export { Card, CardBody } from "./components/Card";
 export { Badge, TierBadge } from "./components/Badge";

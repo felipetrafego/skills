@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@motora/ui";
+import { ButtonLink } from "@/components/ButtonLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { VehicleCard } from "@/components/VehicleCard";
 import { HeroSearch } from "@/components/market/HeroSearch";
@@ -41,8 +41,8 @@ export default async function MarketplacePage({
         </nav>
         <div className="ml-auto flex items-center gap-2.5">
           <ThemeToggle />
-          <Link href="/entrar"><Button variant="ghost" size="sm">Entrar</Button></Link>
-          <Link href="/cadastro"><Button size="sm">Anunciar grátis</Button></Link>
+          <ButtonLink href="/entrar" variant="ghost" size="sm">Entrar</ButtonLink>
+          <ButtonLink href="/cadastro" size="sm">Anunciar grátis</ButtonLink>
         </div>
       </header>
 

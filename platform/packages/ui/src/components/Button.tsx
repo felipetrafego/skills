@@ -27,6 +27,11 @@ const sizes: Record<Size, string> = {
   md: "text-[13.5px] px-[15px] py-[9px]",
 };
 
+/** Classes visuais do Button — para reaproveitar em links (evita <button> dentro de <a>). */
+export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string) {
+  return clsx(base, variants[variant], sizes[size], className);
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = "primary", size = "md", loading, className, children, disabled, ...rest },
   ref,
@@ -34,7 +39,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   return (
     <button
       ref={ref}
-      className={clsx(base, variants[variant], sizes[size], className)}
+      className={buttonClasses(variant, size, className)}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...rest}
