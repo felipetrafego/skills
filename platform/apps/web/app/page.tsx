@@ -37,12 +37,12 @@ export default async function MarketplacePage({
         <nav className="hidden md:flex gap-1 ml-2 text-[13.5px] text-muted">
           <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/">Comprar</Link>
           <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/favoritos">Favoritos</Link>
-          <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/entrar">Vender grátis</Link>
+          <Link className="px-3 py-1.5 rounded-lg hover:bg-surface-2 hover:text-text" href="/cadastro">Vender grátis</Link>
         </nav>
         <div className="ml-auto flex items-center gap-2.5">
           <ThemeToggle />
           <Link href="/entrar"><Button variant="ghost" size="sm">Entrar</Button></Link>
-          <Link href="/entrar"><Button size="sm">Anunciar grátis</Button></Link>
+          <Link href="/cadastro"><Button size="sm">Anunciar grátis</Button></Link>
         </div>
       </header>
 

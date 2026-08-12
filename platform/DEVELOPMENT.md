@@ -78,6 +78,7 @@ pnpm dev
 | `POST` | `/api/auth/forgot-password` | Solicita link de redefinição (resposta uniforme, não vaza existência) |
 | `POST` | `/api/auth/reset-password` | Define nova senha via token (uso único, expira em 1h) |
 | `POST` | `/api/auth/verify-email/request` · `/verify-email` | Solicita / confirma verificação de e-mail |
+| `GET` | `/api/auth/verify-email/status` | Estado da verificação de e-mail do usuário |
 | `GET` | `/api/team` · `POST /invite` · `PATCH /:id/role` · `DELETE /:id` | Equipe do lojista (RBAC): lista, convida, muda papel, remove |
 | `GET` | `/api/auth/oauth/providers` | Provedores sociais configurados (Google/Microsoft/Apple) |
 | `GET` | `/api/auth/oauth/:provider` · `/callback` | Fluxo OAuth2 (redirect + callback) |

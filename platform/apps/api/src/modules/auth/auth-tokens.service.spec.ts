@@ -145,6 +145,22 @@ describe("AuthTokensService", () => {
     });
   });
 
+  describe("emailStatus", () => {
+    it("retorna verified=true quando emailVerifiedAt está preenchido", async () => {
+      prisma.user.findUnique.mockResolvedValue({ emailVerifiedAt: new Date() });
+      build();
+      expect(await service.emailStatus("u1")).toEqual({ verified: true });
+    });
+
+    it("retorna verified=false quando não verificado ou usuário ausente", async () => {
+      prisma.user.findUnique.mockResolvedValue({ emailVerifiedAt: null });
+      build();
+      expect(await service.emailStatus("u1")).toEqual({ verified: false });
+      prisma.user.findUnique.mockResolvedValue(null);
+      expect(await service.emailStatus("x")).toEqual({ verified: false });
+    });
+  });
+
   describe("verifyEmail", () => {
     it("marca o e-mail como verificado ao consumir um token EMAIL_VERIFY válido", async () => {
       prisma.verificationToken.findUnique.mockResolvedValue({

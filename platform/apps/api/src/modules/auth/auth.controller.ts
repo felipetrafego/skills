@@ -23,8 +23,11 @@ export class AuthController {
   ) {}
 
   @Post("register")
-  register(@Body() dto: RegisterDto) {
-    return this.auth.register(dto);
+  async register(@Body() dto: RegisterDto) {
+    const result = await this.auth.register(dto);
+    // Dispara a verificação de e-mail (best-effort — não bloqueia o cadastro).
+    void this.tokens.requestEmailVerification(result.user.id).catch(() => undefined);
+    return result;
   }
 
   @Post("login")
@@ -100,6 +103,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   requestEmailVerification(@CurrentUser() user: JwtPayload) {
     return this.tokens.requestEmailVerification(user.sub);
+  }
+
+  @Get("verify-email/status")
+  @UseGuards(JwtAuthGuard)
+  emailStatus(@CurrentUser() user: JwtPayload) {
+    return this.tokens.emailStatus(user.sub);
   }
 
   @Post("verify-email")

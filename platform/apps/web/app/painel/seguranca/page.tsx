@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, Button, Badge } from "@motora/ui";
 import {
   twofaStatus, twofaSetup, twofaEnable, twofaDisable, AuthError,
+  emailVerificationStatus, requestEmailVerification,
 } from "@/lib/client-api";
 
 const input = "w-full bg-surface-2 border border-border rounded-[10px] px-3.5 py-2.5 text-[14px] outline-none focus:border-brand transition-colors";
@@ -17,12 +18,31 @@ export default function SegurancaPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   useEffect(() => {
     twofaStatus()
       .then((s) => setEnabled(s.enabled))
       .catch((e) => e instanceof AuthError && router.replace("/entrar"));
+    emailVerificationStatus()
+      .then((s) => setEmailVerified(s.verified))
+      .catch(() => setEmailVerified(null));
   }, [router]);
+
+  async function resendVerification() {
+    setBusy(true);
+    setResendMsg(null);
+    try {
+      const r = await requestEmailVerification();
+      setResendMsg(r.alreadyVerified ? "Seu e-mail já está verificado." : "Enviamos um novo link de verificação.");
+      if (r.alreadyVerified) setEmailVerified(true);
+    } catch (e) {
+      if (e instanceof AuthError) router.replace("/entrar");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function startSetup() {
     setBusy(true);
@@ -78,6 +98,32 @@ export default function SegurancaPage() {
       </div>
 
       {msg && <p className="text-success text-[13px] mb-3">{msg}</p>}
+
+      {/* Verificação de e-mail */}
+      <Card className="p-[20px] mb-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-[10px] grid place-items-center bg-brand-tint text-brand">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+            </span>
+            <div>
+              <b className="text-[14.5px]">E-mail da conta</b>
+              <div className="text-[12px] text-muted">Confirmação por link enviado ao seu e-mail.</div>
+            </div>
+          </div>
+          {emailVerified === null ? null : emailVerified ? (
+            <Badge tone="green">Verificado</Badge>
+          ) : (
+            <Badge tone="amber">Não verificado</Badge>
+          )}
+        </div>
+        {emailVerified === false && (
+          <div className="border-t border-border pt-4 mt-4 flex items-center gap-3 flex-wrap">
+            <Button size="sm" variant="ghost" onClick={resendVerification} loading={busy}>Reenviar verificação</Button>
+            {resendMsg && <span className="text-[12.5px] text-success">{resendMsg}</span>}
+          </div>
+        )}
+      </Card>
 
       <Card className="p-[20px]">
         <div className="flex items-center justify-between mb-4">

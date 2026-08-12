@@ -96,6 +96,27 @@ export async function login(
   return { require2fa: true, challenge: data.challenge };
 }
 
+export async function register(input: {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}): Promise<void> {
+  const res = await fetch(`${API}/api/auth/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res));
+  storeSession((await res.json()) as { accessToken: string; refreshToken: string });
+}
+
+/** Solicita (reenvia) o e-mail de verificação para o usuário logado. */
+export const requestEmailVerification = () =>
+  authPost<{ ok: boolean; alreadyVerified?: boolean }>("/auth/verify-email/request", {});
+export const emailVerificationStatus = () =>
+  authFetch<{ verified: boolean }>("/auth/verify-email/status");
+
 export interface OAuthProviderStatus {
   provider: string;
   configured: boolean;

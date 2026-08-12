@@ -154,7 +154,10 @@ export default function LoginPage() {
             </>
           )}
         </Card>
-        <p className="text-center text-[12.5px] text-muted mt-4">
+        <p className="text-center text-[13px] text-muted mt-4">
+          Não tem conta? <Link href="/cadastro" className="text-brand hover:underline">Criar grátis</Link>
+        </p>
+        <p className="text-center text-[12.5px] text-muted mt-2">
           <Link href="/" className="hover:text-text">← Voltar ao marketplace</Link>
         </p>
       </div>

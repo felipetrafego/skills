@@ -109,4 +109,12 @@ export class AuthTokensService {
     await this.prisma.user.update({ where: { id: token.userId }, data: { emailVerifiedAt: new Date() } });
     return { ok: true };
   }
+
+  async emailStatus(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { emailVerifiedAt: true },
+    });
+    return { verified: !!user?.emailVerifiedAt };
+  }
 }
