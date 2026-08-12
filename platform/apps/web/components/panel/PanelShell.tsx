@@ -11,6 +11,7 @@ const NAV: { href: string; label: string; icon: ReactNode; disabled?: boolean }[
   { href: "/painel/anunciar", label: "Novo anúncio", icon: <><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13v4H5z" /><path d="M12 8v4M10 10h4" /></> },
   { href: "/painel/crm", label: "CRM", icon: <><path d="M16 21v-2a4 4 0 0 0-8 0v2" /><circle cx="12" cy="7" r="4" /></> },
   { href: "/painel/atendimento", label: "Atendimento", icon: <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-9A8.4 8.4 0 1 1 21 11.5z" /> },
+  { href: "/painel/pos-venda", label: "Pós-venda", icon: <><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" /><path d="M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></> },
   { href: "/painel/agenda", label: "Agenda", icon: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></> },
   { href: "/painel/marketing", label: "Marketing", icon: <path d="M3 11l18-8-8 18-2-8z" /> },
   { href: "/painel/automacoes", label: "Automações", icon: <path d="M13 2L3 14h9l-1 8 10-12h-9z" /> },

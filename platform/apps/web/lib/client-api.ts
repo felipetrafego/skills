@@ -564,6 +564,30 @@ export interface FinanceSummary {
 }
 export const fetchFinanceSummary = () => authFetch<FinanceSummary>("/billing/summary");
 
+// ---- Pós-venda (jornada + comissões) ----
+export interface Partner {
+  id: string;
+  name: string;
+  category: string;
+  commissionRate: string | number;
+}
+export interface ServiceOffer {
+  id: string;
+  partnerId: string;
+  type: string;
+  status: string;
+  amount: string | number | null;
+  commissionAmount: string | number | null;
+  partner: { name: string; category: string };
+}
+export const fetchPartners = () => authFetch<Partner[]>("/postsale/partners");
+export const markVehicleSold = (vehicleId: string) =>
+  authPost<{ vehicle: { id: string; status: string } }>(`/postsale/vehicles/${vehicleId}/sold`, {});
+export const fetchVehicleOffers = (vehicleId: string) =>
+  authFetch<ServiceOffer[]>(`/postsale/offers?vehicleId=${vehicleId}`);
+export const createServiceOffer = (b: { vehicleId: string; partnerId: string; amount?: number }) =>
+  authPost<ServiceOffer>("/postsale/offers", b);
+
 // ---- Tipos das respostas usadas no painel ----
 export interface DashboardSummary {
   period: string;
