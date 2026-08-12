@@ -1,0 +1,37 @@
+{
+  "name": "motora",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Motora — plataforma SaaS de marketplace automotivo (monorepo)",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:catalog": "tsx prisma/seed-catalog.ts",
+    "db:seed:demo": "tsx prisma/seed-demo-vehicles.ts",
+    "gen:demo-svgs": "node scripts/gen-demo-car-svgs.mjs",
+    "db:rls": "prisma db execute --file prisma/policies/rls.sql --schema prisma/schema.prisma",
+    "db:studio": "prisma studio"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3"
+  }
+}

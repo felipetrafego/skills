@@ -1,0 +1,774 @@
+// Motora — schema de dados multi-tenant.
+// Referência conceitual: platform/docs/02-modelo-de-dados.md
+// Isolamento por tenant via `tenantId` + RLS no Postgres (ver migração de policies).
+
+generator client {
+  provider      = "prisma-client-js"
+  // "native" p/ dev local; targets Linux p/ hosts de produção (Render/Vercel).
+  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+enum UserType {
+  SHOPKEEPER
+  INDIVIDUAL
+  PLATFORM_ADMIN
+}
+
+enum MembershipRole {
+  ADMIN
+  MANAGER
+  SELLER
+  MARKETING
+  FINANCE
+  SUPPORT
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELED
+}
+
+enum OAuthProvider {
+  GOOGLE
+  APPLE
+  MICROSOFT
+}
+
+enum VerificationTokenType {
+  PASSWORD_RESET
+  EMAIL_VERIFY
+}
+
+enum Fuel {
+  FLEX
+  GASOLINE
+  ETHANOL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  GNV
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+  CVT
+  AUTOMATED
+}
+
+enum VehicleStatus {
+  DRAFT
+  ACTIVE
+  RESERVED
+  NEGOTIATING
+  SOLD
+  REMOVED
+}
+
+enum FeaturedTier {
+  NONE
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+  VIEW_360
+  DOCUMENT
+}
+
+enum LeadSource {
+  MARKETPLACE
+  WHATSAPP
+  ADS
+  LANDING
+  MANUAL
+}
+
+enum DealStage {
+  NEW
+  CONTACTED
+  VISIT
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum ActivityType {
+  NOTE
+  TASK
+  CALL
+  MEETING
+  TEST_DRIVE
+  DELIVERY
+  MESSAGE
+}
+
+enum Channel {
+  WHATSAPP
+  EMAIL
+  CHAT
+}
+
+enum MessageDirection {
+  IN
+  OUT
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PaymentMethod {
+  PIX
+  CARD
+  BOLETO
+}
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+enum PartnerCategory {
+  INSURANCE
+  FINANCING
+  TRANSFER
+  INSPECTION
+  WARRANTY
+  TRACKER
+  DISPATCHER
+  CLEANING
+  ADVERTISING
+}
+
+enum ServiceOfferStatus {
+  OFFERED
+  CONTRACTED
+  PAID
+  DECLINED
+}
+
+enum ListingEventType {
+  VIEW
+  CLICK
+  CONTACT
+  SHARE
+  FAVORITE
+}
+
+enum AdPlacement {
+  HOME
+  SEARCH
+  DETAIL
+}
+
+enum AdPricing {
+  CPM
+  CPC
+  PERIOD
+}
+
+// ============================================================
+// Núcleo multi-tenant & identidade
+// ============================================================
+model Tenant {
+  id           String       @id @default(uuid())
+  name         String
+  slug         String       @unique
+  customDomain String?      @unique
+  status       TenantStatus @default(ACTIVE)
+  planId       String?
+  plan         Plan?        @relation(fields: [planId], references: [id])
+  trialEndsAt  DateTime?
+  settings     Json         @default("{}")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  memberships   Membership[]
+  vehicles      Vehicle[]
+  leads         Lead[]
+  deals         Deal[]
+  activities    Activity[]
+  messages      Message[]
+  templates     MessageTemplate[]
+  landingPages  LandingPage[]
+  campaigns     Campaign[]
+  automations   Automation[]
+  subscription  Subscription?
+  invoices      Invoice[]
+  auditLogs     AuditLog[]
+
+  @@index([status])
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String?
+  name             String
+  phone            String?
+  avatarUrl        String?
+  type             UserType  @default(INDIVIDUAL)
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  emailVerifiedAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  memberships   Membership[]
+  oauthAccounts OAuthAccount[]
+  verificationTokens VerificationToken[]
+  refreshTokens RefreshToken[]
+  vehicles      Vehicle[]      @relation("OwnerVehicles")
+  favorites     Favorite[]
+  savedSearches SavedSearch[]
+  serviceOffers ServiceOffer[]
+  featurePurchases FeaturePurchase[]
+}
+
+model Membership {
+  id        String           @id @default(uuid())
+  userId    String
+  tenantId  String
+  role      MembershipRole   @default(SELLER)
+  status    MembershipStatus @default(ACTIVE)
+  invitedAt DateTime         @default(now())
+  joinedAt  DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId, role])
+}
+
+model OAuthAccount {
+  id                String        @id @default(uuid())
+  userId            String
+  provider          OAuthProvider
+  providerAccountId String
+  createdAt         DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  id        String                @id @default(uuid())
+  userId    String
+  type      VerificationTokenType
+  tokenHash String                @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================
+// Catálogo de veículos
+// ============================================================
+model Vehicle {
+  id           String        @id @default(uuid())
+  tenantId     String?
+  ownerUserId  String?
+  title        String
+  description  String?
+  make         String
+  model        String
+  version      String?
+  yearModel    Int
+  yearFab      Int
+  price        Decimal       @db.Decimal(12, 2)
+  fipeCode     String?
+  fipePrice    Decimal?      @db.Decimal(12, 2)
+  mileageKm    Int           @default(0)
+  plate        String?
+  chassis      String?
+  fuel         Fuel          @default(FLEX)
+  transmission Transmission  @default(MANUAL)
+  color        String?
+  doors        Int?
+  bodyType     String?
+  city         String?
+  state        String?
+  lat          Float?
+  lng          Float?
+  status       VehicleStatus @default(DRAFT)
+  featuredTier FeaturedTier  @default(NONE)
+  featuredUntil DateTime?
+  aiScore      Int?
+  views        Int           @default(0)
+  leadsCount   Int           @default(0)
+  favoritesCount Int         @default(0)
+  publishedAt  DateTime?
+  soldAt       DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  owner   User?   @relation("OwnerVehicles", fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  media          VehicleMedia[]
+  options        VehicleOption[]
+  favorites      Favorite[]
+  leads          Lead[]
+  deals          Deal[]
+  listingEvents  ListingEvent[]
+  serviceOffers  ServiceOffer[]
+  featurePurchases FeaturePurchase[]
+
+  @@index([tenantId, status])
+  @@index([make, model, yearModel])
+  @@index([price])
+  @@index([city, state])
+  @@index([featuredTier, featuredUntil])
+}
+
+model VehicleMedia {
+  id             String    @id @default(uuid())
+  vehicleId      String
+  type           MediaType @default(PHOTO)
+  url            String
+  thumbUrl       String?
+  position       Int       @default(0)
+  aiQualityScore Int?
+  createdAt      DateTime  @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, position])
+}
+
+model Option {
+  id       String          @id @default(uuid())
+  name     String          @unique
+  category String?
+  vehicles VehicleOption[]
+}
+
+model VehicleOption {
+  vehicleId String
+  optionId  String
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  option  Option  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@id([vehicleId, optionId])
+}
+
+/// Catálogo de modelos (base reutilizável para prefill ao criar anúncios).
+/// Não é um anúncio: não tem preço, vendedor nem quilometragem.
+model CatalogModel {
+  id           String        @id @default(uuid())
+  make         String
+  model        String
+  version      String?
+  segment      String? // "Hatch", "Sedã", "SUV", "Coupé", "Elétrico"...
+  bodyType     String?
+  yearFrom     Int
+  yearTo       Int?
+  fuel         Fuel          @default(GASOLINE)
+  transmission Transmission?
+  doors        Int?
+  imageUrl     String? // placeholder até imagem devidamente licenciada
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+
+  @@unique([make, model, version])
+  @@index([make, active])
+  @@index([segment])
+}
+
+model FipeReference {
+  id             String   @id @default(uuid())
+  make           String
+  model          String
+  year           Int
+  fuel           Fuel
+  code           String
+  price          Decimal  @db.Decimal(12, 2)
+  referenceMonth String
+  createdAt      DateTime @default(now())
+
+  @@unique([code, year, fuel])
+  @@index([make, model, year])
+}
+
+// ============================================================
+// Marketplace & engajamento
+// ============================================================
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  vehicleId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+}
+
+model SavedSearch {
+  id           String   @id @default(uuid())
+  userId       String
+  filters      Json
+  alertEnabled Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ListingEvent {
+  id          String           @id @default(uuid())
+  vehicleId   String
+  type        ListingEventType
+  source      String?
+  utm         Json?
+  visitorHash String?
+  createdAt   DateTime         @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, type, createdAt])
+}
+
+// ============================================================
+// CRM
+// ============================================================
+model Lead {
+  id          String     @id @default(uuid())
+  tenantId    String
+  vehicleId   String?
+  name        String
+  phone       String?
+  email       String?
+  source      LeadSource @default(MARKETPLACE)
+  utm         Json?
+  ownerUserId String?
+  createdAt   DateTime   @default(now())
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id])
+  deals   Deal[]
+
+  @@index([tenantId, source])
+}
+
+model Deal {
+  id          String    @id @default(uuid())
+  tenantId    String
+  leadId      String
+  vehicleId   String?
+  stage       DealStage @default(NEW)
+  value       Decimal?  @db.Decimal(12, 2)
+  probability Int?
+  assignedTo  String?
+  lostReason  String?
+  createdAt   DateTime  @default(now())
+  closedAt    DateTime?
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead       Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  vehicle    Vehicle?   @relation(fields: [vehicleId], references: [id])
+  activities Activity[]
+
+  @@index([tenantId, stage])
+  @@index([assignedTo])
+}
+
+model Activity {
+  id         String       @id @default(uuid())
+  tenantId   String
+  dealId     String?
+  type       ActivityType @default(NOTE)
+  title      String
+  dueAt      DateTime?
+  done       Boolean      @default(false)
+  assignedTo String?
+  createdAt  DateTime     @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal   Deal?  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dueAt])
+}
+
+model Message {
+  id         String           @id @default(uuid())
+  tenantId   String
+  leadId     String?
+  channel    Channel
+  direction  MessageDirection
+  body       String
+  templateId String?
+  status     String?
+  createdAt  DateTime         @default(now())
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template MessageTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([tenantId, leadId])
+}
+
+model MessageTemplate {
+  id        String    @id @default(uuid())
+  tenantId  String
+  name      String
+  channel   Channel
+  body      String
+  variables Json      @default("[]")
+  createdAt DateTime  @default(now())
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages Message[]
+}
+
+// ============================================================
+// Marketing
+// ============================================================
+model LandingPage {
+  id        String   @id @default(uuid())
+  tenantId  String
+  slug      String
+  title     String
+  content   Json     @default("{}")
+  published Boolean  @default(false)
+  pixel     Json?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, slug])
+}
+
+model Campaign {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  channel   String
+  budget    Decimal? @db.Decimal(12, 2)
+  status    String   @default("DRAFT")
+  utm       Json     @default("{}")
+  metrics   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Automation {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  trigger   Json
+  actions   Json
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, active])
+}
+
+// ============================================================
+// Financeiro & monetização
+// ============================================================
+model Plan {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  priceMonthly Decimal  @db.Decimal(12, 2)
+  features     Json     @default("{}")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  tenants       Tenant[]
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  tenantId           String             @unique
+  planId             String
+  status             SubscriptionStatus @default(TRIALING)
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  paymentMethod      PaymentMethod      @default(PIX)
+  createdAt          DateTime           @default(now())
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  invoices Invoice[]
+
+  @@index([status])
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  tenantId       String?
+  subscriptionId String?
+  amount         Decimal       @db.Decimal(12, 2)
+  status         InvoiceStatus @default(OPEN)
+  method         PaymentMethod?
+  dueAt          DateTime
+  paidAt         DateTime?
+  nfUrl          String?
+  createdAt      DateTime      @default(now())
+
+  tenant       Tenant?       @relation(fields: [tenantId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([tenantId, status])
+}
+
+model FeaturePurchase {
+  id           String       @id @default(uuid())
+  vehicleId    String
+  buyerUserId  String
+  tier         FeaturedTier
+  amount       Decimal      @db.Decimal(12, 2)
+  durationDays Int
+  invoiceId    String?
+  createdAt    DateTime     @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  buyer   User    @relation(fields: [buyerUserId], references: [id])
+
+  @@index([vehicleId])
+}
+
+model Partner {
+  id             String          @id @default(uuid())
+  name           String
+  category       PartnerCategory
+  commissionRate Decimal         @db.Decimal(5, 4)
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+
+  serviceOffers ServiceOffer[]
+
+  @@index([category, active])
+}
+
+model ServiceOffer {
+  id               String             @id @default(uuid())
+  vehicleId        String
+  sellerUserId     String
+  partnerId        String
+  type             PartnerCategory
+  status           ServiceOfferStatus @default(OFFERED)
+  amount           Decimal?           @db.Decimal(12, 2)
+  commissionAmount Decimal?           @db.Decimal(12, 2)
+  createdAt        DateTime           @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  seller  User    @relation(fields: [sellerUserId], references: [id])
+  partner Partner @relation(fields: [partnerId], references: [id])
+
+  @@index([status])
+}
+
+// Publicidade — espaços patrocinados no marketplace
+model Sponsorship {
+  id          String      @id @default(uuid())
+  advertiser  String
+  category    String // "Banco", "Seguradora", "Oficina", "Autopeças"...
+  title       String
+  description String?
+  ctaText     String      @default("Saiba mais")
+  ctaUrl      String      @default("#")
+  placement   AdPlacement @default(HOME)
+  pricing     AdPricing   @default(PERIOD)
+  amount      Decimal     @db.Decimal(12, 2)
+  startAt     DateTime    @default(now())
+  endAt       DateTime
+  active      Boolean     @default(true)
+  impressions Int         @default(0)
+  clicks      Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  @@index([placement, active, endAt])
+}
+
+// ============================================================
+// Plataforma / Admin & auditoria
+// ============================================================
+model AuditLog {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  actorUserId String?
+  action      String
+  entity      String
+  entityId    String?
+  metadata    Json     @default("{}")
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([entity, entityId])
+}
+
+model PlatformMetricSnapshot {
+  id            String   @id @default(uuid())
+  date          DateTime @unique @db.Date
+  mrr           Decimal  @db.Decimal(14, 2)
+  arr           Decimal  @db.Decimal(14, 2)
+  activeTenants Int
+  churnRate     Float
+  ltv           Decimal  @db.Decimal(12, 2)
+  cac           Decimal  @db.Decimal(12, 2)
+  leads         Int
+  vehicles      Int
+  vehiclesSold  Int
+  commissions   Decimal  @db.Decimal(14, 2)
+  createdAt     DateTime @default(now())
+}

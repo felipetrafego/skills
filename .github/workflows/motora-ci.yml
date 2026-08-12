@@ -1,0 +1,61 @@
+name: Motora CI
+
+# Lint, typecheck e build do monorepo da plataforma (platform/).
+# Escopado por path para não rodar em mudanças fora de platform/.
+on:
+  push:
+    branches: ["**"]
+    paths: ["platform/**", ".github/workflows/motora-ci.yml"]
+  pull_request:
+    paths: ["platform/**", ".github/workflows/motora-ci.yml"]
+
+defaults:
+  run:
+    working-directory: platform
+
+env:
+  # prisma generate referencia env(DATABASE_URL) no schema; um valor dummy basta
+  # (nenhuma etapa do CI conecta ao banco).
+  DATABASE_URL: "postgresql://motora:motora@localhost:5432/motora?schema=public"
+  NEXT_TELEMETRY_DISABLED: "1"
+  NEXT_PUBLIC_API_URL: "http://localhost:3333"
+
+jobs:
+  build:
+    name: typecheck & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm db:generate
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate --schema prisma/schema.prisma
+
+      - name: Typecheck design system (@motora/ui)
+        run: pnpm --filter @motora/ui typecheck
+
+      - name: Build API (NestJS — inclui typecheck)
+        run: pnpm --filter @motora/api build
+
+      - name: Test API (Jest — unit, sem banco)
+        run: pnpm --filter @motora/api test
+
+      - name: Build Web (Next.js — inclui typecheck)
+        run: pnpm --filter @motora/web build
